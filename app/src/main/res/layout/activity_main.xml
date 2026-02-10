@@ -68,7 +68,7 @@
         app:layout_constraintBottom_toTopOf="@id/bottomLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_weight="76" />
+        app:layout_constraintVertical_weight="73" />
 
 
     <!-- Bottom 12% -->
@@ -80,7 +80,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_weight="15"
+        app:layout_constraintVertical_weight="12"
         android:background="@color/linght_pink">
         <!-- Bottom layout components -->
         <GridLayout
@@ -88,7 +88,7 @@
             android:layout_height="match_parent"
             android:alignmentMode="alignMargins"
             android:columnCount="4"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="1dp"
             android:gravity="center"
             android:useDefaultMargins="true"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -1,86 +1,60 @@
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/collectionsLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-<!-- header of seasonal-->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/topLayoutcollection"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/middle1Layoutcollection"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:background="@color/light_purple"
-        app:layout_constraintVertical_weight="11">
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="1dp">
+    <LinearLayout
+        android:id="@+id/collectionsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
 
-
+        <!-- HEADER -->
         <TextView
-
             android:id="@+id/seasonalTxt"
-            android:layout_marginTop="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="Seasonal Collections"
             android:textAlignment="center"
-            android:textSize="32sp"/>
+            android:textSize="32sp" />
 
         <TextView
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="10dp"
             android:text="Curated color palettes for every season and style"
             android:textAlignment="center"
-            />
-        </LinearLayout>
+            android:textSize="15sp" />
 
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-    <!-- End header of seasonal-->
-    <!-- Middle 1 of seasonal-->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/middle1Layoutcollection"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/topLayoutcollection"
-        app:layout_constraintBottom_toTopOf="@id/middle2Layoutcollection"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_weight="15"
-        android:background="@color/light_purple">
+        <!-- GRID OF SEASONS -->
         <GridLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:alignmentMode="alignMargins"
             android:columnCount="5"
             android:layout_marginTop="8dp"
             android:gravity="center"
             android:useDefaultMargins="true">
-            <!--Cardview for Spring -->
 
+            <!-- SPRING -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/springCardView"
                 android:layout_width="70dp"
                 android:layout_height="100dp"
                 app:cardCornerRadius="20dp"
-                android:layout_marginLeft="20dp"
                 app:cardElevation="10dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <ImageView
                         android:layout_width="40dp"
@@ -93,16 +67,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Spring"
-                        android:textSize="14sp"
                         android:textColor="@color/black"
-                        android:gravity="center"
-                        android:textAlignment="center" />
-
+                        android:textSize="14sp" />
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
 
-            <!--Cardview for Summer -->
+            <!-- SUMMER -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/summerCardView"
                 android:layout_width="70dp"
@@ -113,8 +83,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <ImageView
                         android:layout_width="40dp"
@@ -127,15 +97,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Summer"
-                        android:textSize="14sp"
                         android:textColor="@color/black"
-                        android:gravity="center"
-                        android:textAlignment="center" />
-
+                        android:textSize="14sp" />
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
-            <!--Cardview for Autumn -->
+
+            <!-- AUTUMN -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/autumnCardView"
                 android:layout_width="70dp"
@@ -146,8 +113,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <ImageView
                         android:layout_width="40dp"
@@ -160,15 +127,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Autumn"
-                        android:textSize="14sp"
                         android:textColor="@color/black"
-                        android:gravity="center"
-                        android:textAlignment="center" />
-
+                        android:textSize="14sp" />
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
-            <!--Cardview for Winter -->
+
+            <!-- WINTER -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/winterCardView"
                 android:layout_width="70dp"
@@ -179,8 +143,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <ImageView
                         android:layout_width="40dp"
@@ -193,15 +157,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Winter"
-                        android:textSize="14sp"
                         android:textColor="@color/black"
-                        android:gravity="center"
-                        android:textAlignment="center" />
-
+                        android:textSize="14sp" />
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
-            <!--Cardview for Trending -->
+
+            <!-- TRENDING -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/tredingCardView"
                 android:layout_width="70dp"
@@ -212,8 +173,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <ImageView
                         android:layout_width="40dp"
@@ -225,190 +186,134 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Treding"
-                        android:textSize="14sp"
+                        android:text="Trending"
                         android:textColor="@color/black"
-                        android:gravity="center"
-                        android:textAlignment="center" />
-
+                        android:textSize="14sp" />
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
-
 
         </GridLayout>
 
-
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-    <!-- Middle 1 of seasonal section-->
-
-    <!--Start middle2 seasonal section-->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/middle2Layoutcollection"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/middle1Layoutcollection"
-        app:layout_constraintBottom_toTopOf="@id/bottomLayoutcollection"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_weight="52"
-        android:background="@color/light_purple">
-        <!--CardView to displays seasons and trending colors  -->
+        <!-- SEASON COLORS CARD -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
             app:cardCornerRadius="5dp"
-            app:cardElevation="2dp"
-            android:layout_margin="2dp">
+            app:cardElevation="2dp">
+
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="5dp">
+
+                <!-- Header -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="10dp">
+
                     <ImageView
                         android:layout_width="40dp"
                         android:layout_height="40dp"
+                        android:layout_marginRight="10dp"
                         android:scaleType="centerInside"
-                        app:srcCompat="@drawable/trending"
-                        android:layout_marginRight="10dp"/>
+                        app:srcCompat="@drawable/trending" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
+
                         <TextView
                             android:id="@+id/seasonNameLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Treding"
-                            android:textSize="16sp"
-                            />
+                            android:text="Trending"
+                            android:textSize="16sp" />
+
                         <TextView
                             android:id="@+id/describeSeasonLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Hello"
-                            android:layout_marginTop="5dp"/>
+                            android:layout_marginTop="5dp"
+                            android:text="Hello" />
                     </LinearLayout>
-
                 </LinearLayout>
-                <!--End Header to displays seasons and trending name with icon  -->
-                <!--Start recycler scrollable colors-->
-                <androidx.recyclerview.widget.RecyclerView
+
+                <!--Test srollable part - Delete it -->
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="8dp"
-                    android:padding="8dp">
-                    <!--Colors displayed here -->
+                    android:text="Colors Here"
+                    android:textSize="200sp"/>
 
-
-
-
-                </androidx.recyclerview.widget.RecyclerView>
-
-                <!--End recycler scrollable colors-->
-
-
+                <!-- RecyclerView -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/colorsRecycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:layout_marginTop="8dp" />
 
             </LinearLayout>
-
         </androidx.cardview.widget.CardView>
-        <!--End CardView to displays seasons and trending colors  -->
 
-
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-    <!--End middle2 seasonal section-->
-
-    <!--Start bottom seasonal section-->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/bottomLayoutcollection"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/middle2Layoutcollection"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_weight="14"
-        android:background="@color/light_purple"
-
-        >
+        <!-- STYLING TIPS -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:cardCornerRadius="10dp"
-            android:layout_margin="2dp"
-            >
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="1dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="10dp">
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:scaleType="centerInside"
-                app:srcCompat="@drawable/trending"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="5dp"/>
+            android:layout_margin="8dp"
+            app:cardCornerRadius="10dp">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Styling Tips"
+                android:orientation="vertical"
+                android:padding="10dp">
 
-                android:textSize="15sp"/>
-        </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="10dp">
 
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginRight="5dp"
+                        android:scaleType="centerInside"
+                        app:srcCompat="@drawable/trending" />
 
-            <TextView
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="2dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:text="- These versatile shades work year-round."
-                android:layout_marginLeft="10dp"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Styling Tips"
+                        android:textSize="15sp" />
+                </LinearLayout>
 
-                />
-            <TextView
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="2dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:text="- Perfect for minimalist and modern aesthetics"
-                android:layout_marginLeft="10dp"
-                />
-            <TextView
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="2dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:text="- Ideal for professional and casual settings"
-                android:layout_marginLeft="10dp"
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="- These versatile shades work year-round."
+                    android:textSize="12sp" />
 
-                />
-        </LinearLayout>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="- Perfect for minimalist and modern aesthetics"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="- Ideal for professional and casual settings"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+</ScrollView>
