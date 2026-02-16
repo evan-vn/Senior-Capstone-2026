@@ -16,7 +16,7 @@
         app:layout_constraintBottom_toTopOf="@id/middleLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_weight="12"
+        app:layout_constraintVertical_weight="8"
         android:background="@color/light_purple">
 
         <!-- First layout components -->
@@ -26,11 +26,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="5dp"
             android:text="NailIt"
-            android:layout_marginLeft="8dp"
+            android:layout_marginLeft="10dp"
             android:textColor="@color/black"
-            android:textSize="25sp"
+            android:textSize="20sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -40,7 +40,7 @@
             android:layout_height="wrap_content"
             android:text="Describe Feature App Here"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="40dp"
             android:layout_marginLeft="8dp"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -80,7 +80,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_weight="12"
+        app:layout_constraintVertical_weight="10"
         android:background="@color/linght_pink">
         <!-- Bottom layout components -->
         <GridLayout
@@ -88,7 +88,6 @@
             android:layout_height="match_parent"
             android:alignmentMode="alignMargins"
             android:columnCount="4"
-            android:layout_marginTop="1dp"
             android:gravity="center"
             android:useDefaultMargins="true"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -102,11 +101,11 @@
                 android:layout_marginLeft="20dp">
 
                 <ImageView
-                    android:id="@+id/palletIcon"
+                    android:id="@+id/collectionIcon"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:layout_marginLeft="20dp"
-                    android:layout_marginTop="3dp"
+
                     android:adjustViewBounds="true"
                     android:paddingTop="12dp"
                     android:paddingLeft="12dp"
@@ -116,7 +115,7 @@
                     app:srcCompat="@drawable/pallet" />
 
                 <TextView
-                    android:id="@+id/palletLabel"
+
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Collections"
@@ -140,7 +139,7 @@
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:layout_marginLeft="20dp"
-                    android:layout_marginTop="3dp"
+
                     android:adjustViewBounds="true"
                     android:paddingTop="12dp"
                     android:paddingLeft="12dp"
@@ -150,7 +149,7 @@
                     app:srcCompat="@drawable/camera" />
 
                 <TextView
-                    android:id="@+id/cameraLabel"
+
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Try On"
@@ -172,7 +171,7 @@
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:layout_marginLeft="20dp"
-                    android:layout_marginTop="3dp"
+
                     android:adjustViewBounds="true"
                     android:paddingTop="12dp"
                     android:paddingLeft="12dp"
@@ -182,7 +181,7 @@
                     app:srcCompat="@drawable/location" />
 
                 <TextView
-                    android:id="@+id/locationLabel"
+
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Salons"
@@ -205,7 +204,7 @@
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:layout_marginLeft="20dp"
-                    android:layout_marginTop="3dp"
+
                     android:adjustViewBounds="true"
                     android:paddingTop="12dp"
                     android:paddingLeft="12dp"

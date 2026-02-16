@@ -1,6 +1,8 @@
 package com.example.nailit;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +14,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends AppCompatActivity {
+    ImageView tryOnBtn, collectionBtn, aiBtn, locationBtn;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,9 +27,26 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        tryOnBtn = findViewById(R.id.cameraIcon);
+        collectionBtn = findViewById(R.id.collectionIcon);
+        aiBtn = findViewById(R.id.botIcon);
+        locationBtn = findViewById(R.id.locationIcon);
 
-        loadFragment(new FragmentTryOn());
 
+        loadFragment(new FragmentCollections());
+
+        tryOnBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadFragment(new FragmentTryOn());
+            }
+        });
+        collectionBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadFragment(new FragmentCollections());
+            }
+        });
 
     }
 
