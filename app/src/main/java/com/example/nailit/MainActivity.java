@@ -48,6 +48,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        locationBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadFragment(new FragmentLocations());
+            }
+        });
+        aiBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadFragment(new FragmentChatBot());
+            }
+        });
+
     }
 
     public void loadFragment(Fragment fragment){
