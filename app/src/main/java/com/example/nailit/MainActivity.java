@@ -14,7 +14,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends AppCompatActivity {
-    ImageView tryOnBtn, collectionBtn, aiBtn, locationBtn;
+    ImageView tryOnBtn, collectionBtn, aiBtn, locationBtn, profileBtn;
 
 
     @Override
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         collectionBtn = findViewById(R.id.collectionIcon);
         aiBtn = findViewById(R.id.botIcon);
         locationBtn = findViewById(R.id.locationIcon);
-
+        profileBtn = findViewById(R.id.imageProfile);
 
         loadFragment(new FragmentCollections());
 
@@ -60,6 +60,14 @@ public class MainActivity extends AppCompatActivity {
                 loadFragment(new FragmentChatBot());
             }
         });
+
+        profileBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadFragment(new FragmentProfile());
+            }
+        });
+
 
     }
 
