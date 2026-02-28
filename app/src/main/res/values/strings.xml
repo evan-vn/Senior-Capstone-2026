@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">NailIt</string>
+<<<<<<< HEAD
     <string name="google_maps_key">fill here</string>
+=======
+    <string name="google_maps_key">AIzaSyC3OXO9oWOu9f7AdODNt-YJ5ZPctywfVwI</string>
+>>>>>>> 6989476 (working version)
 </resources>

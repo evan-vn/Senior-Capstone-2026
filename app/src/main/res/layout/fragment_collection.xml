@@ -1,4 +1,4 @@
-<ScrollView
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -219,6 +219,7 @@
                     android:layout_marginBottom="10dp">
 
                     <ImageView
+                        android:id="@+id/seasonIcon"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_marginRight="10dp"
@@ -242,24 +243,34 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
-                            android:text="Hello" />
+                            android:text="Popular picks right now" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <!--Test srollable part - Delete it -->
+                <ProgressBar
+                    android:id="@+id/trendingProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone" />
+
                 <TextView
+                    android:id="@+id/trendingError"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Colors Here"
-                    android:textSize="200sp"/>
+                    android:layout_marginTop="12dp"
+                    android:textAlignment="center"
+                    android:textSize="13sp"
+                    android:textColor="#999999"
+                    android:visibility="gone" />
 
-                <!-- RecyclerView -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/colorsRecycler"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:layout_marginTop="8dp" />
+                    android:nestedScrollingEnabled="false"
+                    android:layout_marginTop="4dp" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -318,4 +329,4 @@
         </androidx.cardview.widget.CardView>
 
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>
