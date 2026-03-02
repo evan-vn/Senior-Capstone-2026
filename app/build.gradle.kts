@@ -47,10 +47,20 @@ dependencies {
     implementation ("androidx.camera:camera-view:$camerax_version")
     implementation ("androidx.camera:camera-extensions:$camerax_version")
 
-    implementation 'org.tensorflow:tensorflow-lite:2.12.0'
-    implementation 'org.tensorflow:tensorflow-lite-support:0.4.3'
-    implementation 'org.tensorflow:tensorflow-lite-metadata:0.4.3'
-    implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.12.0'
+    implementation ("org.tensorflow:tensorflow-lite:2.12.0")
+    implementation ("org.tensorflow:tensorflow-lite-support:0.4.3")
+    implementation ("org.tensorflow:tensorflow-lite-metadata:0.4.3")
+    implementation ("org.tensorflow:tensorflow-lite-select-tf-ops:2.12.0")
+
+    //Google API
+
+    implementation("com.google.android.libraries.places:places:3.5.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
+
+    implementation("com.google.android.material:material:1.12.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

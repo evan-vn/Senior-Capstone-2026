@@ -1,67 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@layout/item_salon_bg"
-        android:layout_marginBottom="8dp"
-        tools:ignore="MissingConstraints">
+        android:padding="14dp">
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            app:srcCompat="@drawable/example_background_salon"/>
-        <TextView
-            android:id="@+id/salonName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Salon Name"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="3dp">
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/salonAddress"
-                android:layout_width="wrap_content"
+                android:id="@+id/salonName"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="123 Main st Winston Salem"
+                android:layout_weight="1"
+                android:textStyle="bold"
                 android:textSize="18sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                />
+                android:textColor="#111111"
+                tools:text="MC Nail Spa" />
+
             <TextView
-                android:id="@+id/salonDistance"
+                android:id="@+id/salonRating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="10 miles"
                 android:textSize="14sp"
-                android:layout_marginTop="4dp" app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/salonAddress"
-                app:layout_constraintBottom_toBottomOf="@id/salonAddress"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:textColor="#444444"
+                tools:text="⭐ 4.5" />
+        </LinearLayout>
 
+        <TextView
+            android:id="@+id/salonAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:paddingTop="6dp"
+            tools:text="357 Castro St #7, Thomasville, NC" />
 
-
-
-
-
+        <TextView
+            android:id="@+id/salonHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="#888888"
+            android:paddingTop="8dp"
+            tools:text="Tap to view details" />
     </LinearLayout>
 
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
