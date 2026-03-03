@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.example.nailit.data.network.RetrofitUtil;
 import com.example.nailit.data.network.TokenStore;
 
 import java.util.HashMap;
@@ -48,13 +49,7 @@ public class PasswordGrantAuthProvider implements AuthProvider {
             public void onResponse(@NonNull Call<ResponseBody> call,
                                    @NonNull Response<ResponseBody> response) {
                 if (!response.isSuccessful()) {
-                    String msg = "Sign-in failed: HTTP " + response.code();
-                    try {
-                        if (response.errorBody() != null) {
-                            msg += " — " + response.errorBody().string();
-                        }
-                    } catch (Exception ignored) {}
-                    callback.onError(msg);
+                    callback.onError(RetrofitUtil.extractError("Sign-in", response));
                     return;
                 }
 

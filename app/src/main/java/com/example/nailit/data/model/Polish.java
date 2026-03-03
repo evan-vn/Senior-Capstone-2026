@@ -2,6 +2,8 @@ package com.example.nailit.data.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 public class Polish {
 
     @SerializedName("uid")
@@ -28,6 +30,9 @@ public class Polish {
     @SerializedName("favorite_count")
     private int favoriteCount;
 
+    @SerializedName("swatch_images")
+    private List<String> swatchImages;
+
     public String getUid() { return uid; }
     public String getBrand() { return brand; }
     public String getCollection() { return collection; }
@@ -36,6 +41,15 @@ public class Polish {
     public String getDescription() { return description; }
     public String getHex() { return hex; }
     public int getFavoriteCount() { return favoriteCount; }
+    public List<String> getSwatchImages() { return swatchImages; }
+
+    //Returns the first swatch image URL, or null if none available
+    public String getSwatchUrl() {
+        if (swatchImages != null && !swatchImages.isEmpty()) {
+            return swatchImages.get(0);
+        }
+        return null;
+    }
 
     public static Polish create(String uid, String shadeName, String brand,
                                 String hex) {

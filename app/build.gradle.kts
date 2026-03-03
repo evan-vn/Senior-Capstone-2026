@@ -17,9 +17,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "NEON_DATA_API_KEY", "\"${project.findProperty("NEON_DATA_API_KEY") ?: ""}\"")
-        buildConfigField("String", "NEON_CLIENT_ID", "\"${project.findProperty("NEON_CLIENT_ID") ?: ""}\"")
-        buildConfigField("String", "NEON_CLIENT_SECRET", "\"${project.findProperty("NEON_CLIENT_SECRET") ?: ""}\"")
-        buildConfigField("String", "NEON_AUTH_MODE", "\"${project.findProperty("NEON_AUTH_MODE") ?: "password"}\"")
     }
 
     buildFeatures {
@@ -85,6 +82,10 @@ dependencies {
 
     //RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+
+    //Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     implementation(libs.camera.lifecycle)
 >>>>>>> 6989476 (working version)
 

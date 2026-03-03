@@ -6,11 +6,13 @@
     android:gravity="center_vertical"
     android:padding="12dp">
 
-    <View
-        android:id="@+id/color_dot"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:background="@drawable/circle_bg" />
+    <ImageView
+        android:id="@+id/swatch_image"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/placeholder_swatch"
+        android:clipToOutline="true" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -44,12 +46,5 @@
         android:textSize="12sp"
         android:layout_marginEnd="8dp"
         android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/tv_polish_finish"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#999999"
-        android:textSize="12sp" />
 
 </LinearLayout>

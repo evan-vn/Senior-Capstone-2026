@@ -17,16 +17,4 @@ public interface AuthApi {
     //Better Auth session — JWT in "set-auth-jwt" response header
     @GET("get-session")
     Call<ResponseBody> getSession();
-
-    //TODO: Better Auth magic-link plugin (enable in Neon console first)
-    @POST("sign-in/magic-link")
-    Call<ResponseBody> requestMagicLink(@Body Map<String, String> body);
-
-    //TODO: Better Auth email-otp plugin (enable in Neon console first)
-    @POST("sign-in/email-otp")
-    Call<ResponseBody> requestEmailOtp(@Body Map<String, String> body);
-
-    //TODO: Better Auth email-otp verification
-    @POST("email-otp/verify-email")
-    Call<ResponseBody> verifyEmailOtp(@Body Map<String, String> body);
 }

@@ -1,15 +1,16 @@
 package com.example.nailit.ui;
 
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.example.nailit.R;
 import com.example.nailit.data.model.Polish;
 
@@ -45,8 +46,12 @@ public class TrendingPolishesAdapter
         h.tvName.setText(p.getShadeName() != null ? p.getShadeName() : "—");
         h.tvBrand.setText(p.getBrand() != null ? p.getBrand() : "—");
 
-        int dotColor = parseHex(p.getHex());
-        h.colorDot.setBackgroundTintList(ColorStateList.valueOf(dotColor));
+        Glide.with(h.itemView.getContext())
+                .load(p.getSwatchUrl())
+                .placeholder(R.drawable.placeholder_swatch)
+                .error(R.drawable.placeholder_swatch)
+                .transform(new CircleCrop())
+                .into(h.swatchImage);
 
         if (p.getFavoriteCount() > 0) {
             h.tvFavoriteCount.setText("♥ " + p.getFavoriteCount());
@@ -54,10 +59,6 @@ public class TrendingPolishesAdapter
         } else {
             h.tvFavoriteCount.setVisibility(View.GONE);
         }
-
-        String collection = p.getCollection();
-        h.tvCollection.setText(collection != null ? collection : "");
-        h.tvCollection.setVisibility(collection != null ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -65,30 +66,18 @@ public class TrendingPolishesAdapter
         return items != null ? items.size() : 0;
     }
 
-    private static int parseHex(String hex) {
-        if (hex == null || hex.isEmpty()) return 0xFFCCCCCC;
-        try {
-            if (!hex.startsWith("#")) hex = "#" + hex;
-            return Color.parseColor(hex);
-        } catch (IllegalArgumentException e) {
-            return 0xFFCCCCCC;
-        }
-    }
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        final View colorDot;
+        final ImageView swatchImage;
         final TextView tvName;
         final TextView tvBrand;
         final TextView tvFavoriteCount;
-        final TextView tvCollection;
 
         ViewHolder(View itemView) {
             super(itemView);
-            colorDot = itemView.findViewById(R.id.color_dot);
+            swatchImage = itemView.findViewById(R.id.swatch_image);
             tvName = itemView.findViewById(R.id.tv_polish_name);
             tvBrand = itemView.findViewById(R.id.tv_polish_brand);
             tvFavoriteCount = itemView.findViewById(R.id.tv_favorite_count);
-            tvCollection = itemView.findViewById(R.id.tv_polish_finish);
         }
     }
 }

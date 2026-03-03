@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import com.example.nailit.data.api.PolishesApi;
 import com.example.nailit.data.model.Polish;
 import com.example.nailit.data.network.ApiClient;
+import com.example.nailit.data.network.RetrofitUtil;
 import com.example.nailit.data.network.TokenStore;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class PolishesRepository {
             public void onResponse(@NonNull Call<List<Polish>> call,
                                    @NonNull Response<List<Polish>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError(extractError("Polishes", response));
+                    callback.onError(RetrofitUtil.extractError("Polishes", response));
                     return;
                 }
                 Log.d(TAG, "Fetched " + response.body().size() + " polishes");
@@ -57,7 +58,7 @@ public class PolishesRepository {
                     public void onResponse(@NonNull Call<List<Polish>> call,
                                            @NonNull Response<List<Polish>> response) {
                         if (!response.isSuccessful() || response.body() == null) {
-                            String msg = extractError("Trending", response);
+                            String msg = RetrofitUtil.extractError("Trending", response);
                             Log.e(TAG, msg);
                             callback.onError(msg);
                             return;
@@ -83,7 +84,7 @@ public class PolishesRepository {
                     public void onResponse(@NonNull Call<List<Polish>> call,
                                            @NonNull Response<List<Polish>> response) {
                         if (!response.isSuccessful() || response.body() == null) {
-                            String msg = extractError("Season/" + seasonTag, response);
+                            String msg = RetrofitUtil.extractError("Season/" + seasonTag, response);
                             Log.e(TAG, msg);
                             callback.onError(msg);
                             return;
@@ -100,13 +101,4 @@ public class PolishesRepository {
                 });
     }
 
-    private static String extractError(String label, Response<?> response) {
-        String msg = label + " request failed: HTTP " + response.code();
-        try {
-            if (response.errorBody() != null) {
-                msg += " — " + response.errorBody().string();
-            }
-        } catch (Exception ignored) {}
-        return msg;
-    }
 }

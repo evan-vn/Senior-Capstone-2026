@@ -1,7 +1,6 @@
 package com.example.nailit;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FragmentCollections extends Fragment {
-
-    private static final String TAG = "FragmentCollections";
 
     private CardView[] tabCards;
     private int selectedIndex = -1;
@@ -144,12 +141,6 @@ public class FragmentCollections extends Fragment {
                         return;
                     }
                     adapter.setItems(polishes);
-
-                    Log.d(TAG, "received=" + polishes.size()
-                            + " adapterCount=" + adapter.getItemCount());
-                    colorsRecycler.post(() -> Log.d(TAG,
-                            "rvH=" + colorsRecycler.getHeight()
-                                    + " measured=" + colorsRecycler.getMeasuredHeight()));
                 });
             }
 
