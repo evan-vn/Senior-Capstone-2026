@@ -49,7 +49,6 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
 
-<<<<<<< HEAD
     implementation ("org.tensorflow:tensorflow-lite:2.12.0")
     implementation ("org.tensorflow:tensorflow-lite-support:0.4.3")
     implementation ("org.tensorflow:tensorflow-lite-metadata:0.4.3")
@@ -64,7 +63,7 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
 
-=======
+
     implementation("org.tensorflow:tensorflow-lite:2.12.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
     implementation("org.tensorflow:tensorflow-lite-metadata:0.4.3")
@@ -87,7 +86,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     implementation(libs.camera.lifecycle)
->>>>>>> 6989476 (working version)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
