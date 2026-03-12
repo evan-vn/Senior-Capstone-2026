@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">NailIt</string>
     <string name="google_maps_key">"api key here"</string>
+    <string name="guest_name">User</string>
 </resources>

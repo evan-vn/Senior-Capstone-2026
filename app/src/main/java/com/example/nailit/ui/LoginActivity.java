@@ -3,9 +3,9 @@ package com.example.nailit.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,11 +32,16 @@ public class LoginActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         btnSendCode = findViewById(R.id.btn_send_code);
+        TextView tvGoToSignUp = findViewById(R.id.tv_go_to_sign_up);
 
         TokenStore tokenStore = new TokenStore(this);
         authRepository = new AuthRepository(tokenStore);
 
         btnSendCode.setOnClickListener(v -> handleSendCode());
+        tvGoToSignUp.setOnClickListener(v -> {
+            startActivity(new Intent(this, SignUpActivity.class));
+            finish();
+        });
     }
 
     private void handleSendCode() {

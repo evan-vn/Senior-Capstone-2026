@@ -12,4 +12,7 @@ public interface AuthProvider {
 
     //Step 2: complete sign-in (verify code/link payload, or no-op if password flow)
     void signInComplete(String codeOrPayload, AuthCallback callback);
+
+    //Sign up with email, password, optional name; on success session/JWT is stored
+    void signUp(String email, String password, String name, AuthCallback callback);
 }

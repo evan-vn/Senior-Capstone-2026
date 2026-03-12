@@ -13,6 +13,7 @@ import java.util.Map;
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -43,12 +44,28 @@ public final class PlainClient {
 
     private PlainClient() {}
 
+    //Neon Auth requires Origin header; derive from request URL
+    private static final Interceptor ORIGIN_INTERCEPTOR = chain -> {
+        okhttp3.Request request = chain.request();
+        HttpUrl url = request.url();
+        int defaultPort = "https".equals(url.scheme()) ? 443 : 80;
+        String origin = url.scheme() + "://" + url.host();
+        if (url.port() != defaultPort) {
+            origin += ":" + url.port();
+        }
+        request = request.newBuilder()
+                .addHeader("Origin", origin)
+                .build();
+        return chain.proceed(request);
+    };
+
     public static Retrofit getInstance(String baseUrl) {
         if (instance == null) {
             synchronized (PlainClient.class) {
                 if (instance == null) {
                     OkHttpClient.Builder httpBuilder = new OkHttpClient.Builder()
-                            .cookieJar(COOKIE_JAR);
+                            .cookieJar(COOKIE_JAR)
+                            .addInterceptor(ORIGIN_INTERCEPTOR);
 
                     if (BuildConfig.DEBUG) {
                         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();

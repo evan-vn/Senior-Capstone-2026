@@ -99,4 +99,39 @@ public class PasswordGrantAuthProvider implements AuthProvider {
             }
         });
     }
+
+    public void signUp(String email, String password, String name, AuthCallback callback) {
+        if (email == null || email.trim().isEmpty()) {
+            callback.onError("Email required");
+            return;
+        }
+        if (password == null || password.isEmpty()) {
+            callback.onError("Password required");
+            return;
+        }
+        Map<String, String> body = new HashMap<>();
+        body.put("email", email.trim());
+        body.put("password", password);
+        if (name != null && !name.trim().isEmpty()) {
+            body.put("name", name.trim());
+        }
+        Log.d(TAG, "POST sign-up/email for " + email);
+        authApi.signUpEmail(body).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (!response.isSuccessful()) {
+                    callback.onError(RetrofitUtil.extractError("Sign-up", response));
+                    return;
+                }
+                Log.d(TAG, "Sign-up OK, fetching JWT from session…");
+                fetchJwt(callback);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                callback.onError("Sign-up network error: " + t.getMessage());
+            }
+        });
+    }
 }

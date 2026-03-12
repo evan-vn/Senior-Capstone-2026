@@ -17,4 +17,12 @@ public interface AuthApi {
     //Better Auth session — JWT in "set-auth-jwt" response header
     @GET("get-session")
     Call<ResponseBody> getSession();
+
+    //Session body for profile (user name, email)
+    @GET("get-session")
+    Call<SessionResponse> getSessionUser();
+
+    //Better Auth sign-up (email + password + optional name)
+    @POST("sign-up/email")
+    Call<ResponseBody> signUpEmail(@Body Map<String, String> body);
 }
