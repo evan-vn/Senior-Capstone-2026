@@ -19,6 +19,12 @@ import retrofit2.Response;
 public class PolishesRepository {
 
     private static final String TAG = "PolishesRepository";
+    //Base table select (no favorite_count column, no image_data)
+    private static final String SELECT_LIST_BASE =
+            "uid,brand,collection,shade_name,shade_code,description,hex,swatch_images,thumbnail_data";
+    //Trending view select (view has favorite_count; omit thumbnail_data — view may predate that column)
+    private static final String SELECT_LIST_TRENDING =
+            "uid,brand,collection,shade_name,shade_code,description,hex,favorite_count,swatch_images";
 
     private final PolishesApi polishesApi;
 
@@ -52,7 +58,7 @@ public class PolishesRepository {
     }
 
     public void getTrendingPolishes(PolishesCallback callback) {
-        polishesApi.getTrendingPolishes("*", "favorite_count.desc", "30")
+        polishesApi.getTrendingPolishes(SELECT_LIST_TRENDING, "favorite_count.desc", "30")
                 .enqueue(new Callback<List<Polish>>() {
                     @Override
                     public void onResponse(@NonNull Call<List<Polish>> call,
@@ -78,7 +84,7 @@ public class PolishesRepository {
     public void getPolishesBySeason(String seasonTag, PolishesCallback callback) {
         String filter = "cs.[\"" + seasonTag + "\"]";
 
-        polishesApi.getPolishesBySeason("*", filter, "30")
+        polishesApi.getPolishesBySeason(SELECT_LIST_BASE, filter, "30")
                 .enqueue(new Callback<List<Polish>>() {
                     @Override
                     public void onResponse(@NonNull Call<List<Polish>> call,

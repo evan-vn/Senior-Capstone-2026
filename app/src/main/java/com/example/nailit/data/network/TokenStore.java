@@ -13,6 +13,7 @@ public final class TokenStore {
 
     private static final String PREF_FILE = "neon_secure_prefs";
     private static final String KEY_ACCESS_TOKEN = "access_token";
+    private static final String KEY_USER_ID = "user_id";
 
     private final SharedPreferences prefs;
 
@@ -37,6 +38,18 @@ public final class TokenStore {
 
     public String getAccessToken() {
         return prefs.getString(KEY_ACCESS_TOKEN, null);
+    }
+
+    public void setUserId(String userId) {
+        if (userId == null) {
+            prefs.edit().remove(KEY_USER_ID).apply();
+        } else {
+            prefs.edit().putString(KEY_USER_ID, userId).apply();
+        }
+    }
+
+    public String getUserId() {
+        return prefs.getString(KEY_USER_ID, null);
     }
 
     public void clear() {

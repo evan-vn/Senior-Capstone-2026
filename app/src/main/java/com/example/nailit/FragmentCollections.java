@@ -13,16 +13,18 @@ import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.nailit.data.model.Polish;
 import com.example.nailit.data.network.TokenStore;
+import com.example.nailit.data.repo.FavoritesRepository;
 import com.example.nailit.data.repo.PolishesRepository;
-import com.example.nailit.ui.TrendingPolishesAdapter;
+import com.example.nailit.ui.PolishGridAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class FragmentCollections extends Fragment {
 
@@ -37,7 +39,8 @@ public class FragmentCollections extends Fragment {
     private TextView trendingError;
 
     private PolishesRepository repo;
-    private TrendingPolishesAdapter adapter;
+    private FavoritesRepository favoritesRepo;
+    private PolishGridAdapter adapter;
 
     private static final int IDX_TRENDING = 4;
 
@@ -76,14 +79,14 @@ public class FragmentCollections extends Fragment {
         trendingProgress = view.findViewById(R.id.trendingProgress);
         trendingError = view.findViewById(R.id.trendingError);
 
-        colorsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        colorsRecycler.setLayoutManager(new GridLayoutManager(requireContext(), 2));
         colorsRecycler.setNestedScrollingEnabled(false);
-
-        adapter = new TrendingPolishesAdapter(new ArrayList<>());
-        colorsRecycler.setAdapter(adapter);
 
         TokenStore tokenStore = new TokenStore(requireContext());
         repo = new PolishesRepository(tokenStore);
+        favoritesRepo = new FavoritesRepository(tokenStore);
+        adapter = new PolishGridAdapter(favoritesRepo);
+        colorsRecycler.setAdapter(adapter);
 
         tabCards = new CardView[]{
                 view.findViewById(R.id.springCardView),
@@ -141,6 +144,7 @@ public class FragmentCollections extends Fragment {
                         return;
                     }
                     adapter.setItems(polishes);
+                    loadFavoritesIntoAdapter();
                 });
             }
 
@@ -161,5 +165,20 @@ public class FragmentCollections extends Fragment {
         trendingError.setVisibility(View.GONE);
         trendingProgress.setVisibility(View.VISIBLE);
         adapter.setItems(new ArrayList<>());
+    }
+
+    private void loadFavoritesIntoAdapter() {
+        favoritesRepo.getMyFavoritePolishes(new FavoritesRepository.FavoritesListCallback() {
+            @Override
+            public void onSuccess(Set<String> polishUids) {
+                if (!isAdded()) return;
+                requireActivity().runOnUiThread(() -> adapter.setFavoriteUids(polishUids));
+            }
+
+            @Override
+            public void onError(String message) {
+                //Leave adapter with empty favorites; user can still tap to add
+            }
+        });
     }
 }
