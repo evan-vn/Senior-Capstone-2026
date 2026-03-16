@@ -2,15 +2,21 @@ package com.example.nailit.data.network;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Base64;
+import android.util.Log;
 
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKeys;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
 public final class TokenStore {
 
+    private static final String TAG = "TokenStore";
     private static final String PREF_FILE = "neon_secure_prefs";
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_USER_ID = "user_id";
@@ -33,7 +39,12 @@ public final class TokenStore {
     }
 
     public void saveAccessToken(String token) {
-        prefs.edit().putString(KEY_ACCESS_TOKEN, token).apply();
+        //Clear stale user_id when a new JWT is saved (different user may be logging in)
+        prefs.edit()
+                .putString(KEY_ACCESS_TOKEN, token)
+                .remove(KEY_USER_ID)
+                .apply();
+        Log.d(TAG, "New JWT saved, cached user_id cleared");
     }
 
     public String getAccessToken() {
@@ -50,6 +61,23 @@ public final class TokenStore {
 
     public String getUserId() {
         return prefs.getString(KEY_USER_ID, null);
+    }
+
+    public String getSubFromJwt() {
+        String jwt = getAccessToken();
+        if (jwt == null || jwt.isEmpty()) return null;
+        try {
+            String[] parts = jwt.split("\\.");
+            if (parts.length < 2) return null;
+            byte[] decoded = Base64.decode(parts[1], Base64.URL_SAFE | Base64.NO_WRAP);
+            JSONObject payload = new JSONObject(new String(decoded, StandardCharsets.UTF_8));
+            String sub = payload.optString("sub", null);
+            Log.d(TAG, "JWT sub (auth_user_id) = " + sub);
+            return sub;
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to decode JWT sub", e);
+            return null;
+        }
     }
 
     public void clear() {

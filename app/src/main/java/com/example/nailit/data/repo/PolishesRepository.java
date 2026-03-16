@@ -10,6 +10,8 @@ import com.example.nailit.data.network.ApiClient;
 import com.example.nailit.data.network.RetrofitUtil;
 import com.example.nailit.data.network.TokenStore;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import retrofit2.Call;
@@ -76,6 +78,41 @@ public class PolishesRepository {
                     @Override
                     public void onFailure(@NonNull Call<List<Polish>> call, @NonNull Throwable t) {
                         callback.onError("Trending network error: " + t.getMessage());
+                    }
+                });
+    }
+
+    public void getPolishesByUids(Collection<String> uids, PolishesCallback callback) {
+        if (uids == null || uids.isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+        StringBuilder sb = new StringBuilder("in.(");
+        boolean first = true;
+        for (String uid : uids) {
+            if (!first) sb.append(",");
+            sb.append(uid);
+            first = false;
+        }
+        sb.append(")");
+
+        polishesApi.getPolishesByUids(SELECT_LIST_BASE, sb.toString())
+                .enqueue(new Callback<List<Polish>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<Polish>> call,
+                                           @NonNull Response<List<Polish>> response) {
+                        if (!response.isSuccessful() || response.body() == null) {
+                            callback.onError(RetrofitUtil.extractError("Polishes by UIDs", response));
+                            return;
+                        }
+                        Log.d(TAG, "Fetched " + response.body().size()
+                                + " polishes for " + uids.size() + " favorite UIDs");
+                        callback.onSuccess(response.body());
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<List<Polish>> call, @NonNull Throwable t) {
+                        callback.onError("Polishes network error: " + t.getMessage());
                     }
                 });
     }

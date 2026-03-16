@@ -26,4 +26,10 @@ public interface PolishesApi {
             @Query("order") String order,
             @Query("limit") String limit
     );
+
+    @GET("polishes")
+    Call<List<Polish>> getPolishesByUids(
+            @Query("select") String select,
+            @Query("uid") String uidInFilter
+    );
 }

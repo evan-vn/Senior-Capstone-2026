@@ -1,6 +1,7 @@
 package com.example.nailit;
 
 import android.os.Bundle;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import com.example.nailit.data.model.Polish;
 import com.example.nailit.data.network.TokenStore;
 import com.example.nailit.data.repo.FavoritesRepository;
 import com.example.nailit.data.repo.PolishesRepository;
+import com.example.nailit.ui.DesignsByPolishActivity;
 import com.example.nailit.ui.PolishGridAdapter;
 
 import java.util.ArrayList;
@@ -85,7 +87,7 @@ public class FragmentCollections extends Fragment {
         TokenStore tokenStore = new TokenStore(requireContext());
         repo = new PolishesRepository(tokenStore);
         favoritesRepo = new FavoritesRepository(tokenStore);
-        adapter = new PolishGridAdapter(favoritesRepo);
+        adapter = new PolishGridAdapter(favoritesRepo, polish -> openDesigns(polish));
         colorsRecycler.setAdapter(adapter);
 
         tabCards = new CardView[]{
@@ -165,6 +167,15 @@ public class FragmentCollections extends Fragment {
         trendingError.setVisibility(View.GONE);
         trendingProgress.setVisibility(View.VISIBLE);
         adapter.setItems(new ArrayList<>());
+    }
+
+    private void openDesigns(Polish polish) {
+        if (polish == null || polish.getUid() == null) return;
+        Intent intent = new Intent(requireContext(), DesignsByPolishActivity.class);
+        intent.putExtra(DesignsByPolishActivity.EXTRA_POLISH_UID, polish.getUid());
+        intent.putExtra(DesignsByPolishActivity.EXTRA_POLISH_NAME,
+                polish.getShadeName() != null ? polish.getShadeName() : "");
+        startActivity(intent);
     }
 
     private void loadFavoritesIntoAdapter() {

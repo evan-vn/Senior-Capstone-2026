@@ -14,6 +14,8 @@ import androidx.fragment.app.Fragment;
 
 import com.example.nailit.data.network.TokenStore;
 import com.example.nailit.data.repo.AuthRepository;
+import com.example.nailit.ui.FavoriteDesignsActivity;
+import com.example.nailit.ui.FavoritePolishesActivity;
 import com.example.nailit.ui.LoginActivity;
 
 public class FragmentProfile extends Fragment {
@@ -29,11 +31,17 @@ public class FragmentProfile extends Fragment {
         profileName = view.findViewById(R.id.profileName);
         profileEmail = view.findViewById(R.id.profileEmail);
         View logoutBtn = view.findViewById(R.id.logout);
+        View savedColors = view.findViewById(R.id.savedColors);
+        View savedDesigns = view.findViewById(R.id.savedDesigns);
 
         TokenStore tokenStore = new TokenStore(requireContext());
         authRepository = new AuthRepository(tokenStore);
 
         logoutBtn.setOnClickListener(v -> handleLogout());
+        savedColors.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), FavoritePolishesActivity.class)));
+        savedDesigns.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), FavoriteDesignsActivity.class)));
         loadProfile();
         return view;
     }

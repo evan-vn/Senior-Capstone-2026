@@ -4,9 +4,9 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.example.nailit.data.api.FavoritesApi;
+import com.example.nailit.data.api.DesignFavoritesApi;
 import com.example.nailit.data.api.UsersApi;
-import com.example.nailit.data.model.FavoriteRow;
+import com.example.nailit.data.model.DesignFavoriteRow;
 import com.example.nailit.data.model.UserIdRow;
 import com.example.nailit.data.network.ApiClient;
 import com.example.nailit.data.network.RetrofitUtil;
@@ -23,13 +23,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class FavoritesRepository {
+public class DesignFavoritesRepository {
 
-    private static final String TAG = "FavoritesRepo";
+    private static final String TAG = "DesignFavoritesRepo";
     private static final String SELECT_ID = "id";
 
     private final TokenStore tokenStore;
-    private final FavoritesApi favoritesApi;
+    private final DesignFavoritesApi favoritesApi;
     private final UsersApi usersApi;
 
     public interface FavoriteCallback {
@@ -38,25 +38,25 @@ public class FavoritesRepository {
     }
 
     public interface FavoritesListCallback {
-        void onSuccess(Set<String> polishUids);
+        void onSuccess(Set<Long> designIds);
         void onError(String message);
     }
 
-    public FavoritesRepository(TokenStore tokenStore) {
+    public DesignFavoritesRepository(TokenStore tokenStore) {
         this.tokenStore = tokenStore;
         retrofit2.Retrofit retrofit = ApiClient.getInstance(tokenStore);
-        this.favoritesApi = retrofit.create(FavoritesApi.class);
+        this.favoritesApi = retrofit.create(DesignFavoritesApi.class);
         this.usersApi = retrofit.create(UsersApi.class);
     }
 
-    public void addFavorite(String polishUid, FavoriteCallback callback) {
+    public void addFavorite(long designId, FavoriteCallback callback) {
         String userId = tokenStore.getUserId();
         if (userId != null) {
             Log.d(TAG, "Using cached user_id=" + userId);
-            doAddFavorite(userId, polishUid, callback);
+            doAddFavorite(userId, designId, callback);
             return;
         }
-        resolveCurrentUser(resolvedId -> doAddFavorite(resolvedId, polishUid, callback), callback);
+        resolveCurrentUser(resolvedId -> doAddFavorite(resolvedId, designId, callback), callback);
     }
 
     private void resolveCurrentUser(java.util.function.Consumer<String> onResolved,
@@ -96,58 +96,54 @@ public class FavoritesRepository {
         });
     }
 
-    public void getMyFavoritePolishes(FavoritesListCallback callback) {
-        favoritesApi.getMyFavorites("polish_uid").enqueue(new Callback<List<FavoriteRow>>() {
+    public void getMyFavoriteDesigns(FavoritesListCallback callback) {
+        favoritesApi.getMyFavorites("design_id").enqueue(new Callback<List<DesignFavoriteRow>>() {
             @Override
-            public void onResponse(@NonNull Call<List<FavoriteRow>> call,
-                                   @NonNull Response<List<FavoriteRow>> response) {
+            public void onResponse(@NonNull Call<List<DesignFavoriteRow>> call,
+                                   @NonNull Response<List<DesignFavoriteRow>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError(RetrofitUtil.extractError("Favorites", response));
+                    callback.onError(RetrofitUtil.extractError("Design favorites", response));
                     return;
                 }
-                Set<String> uids = new HashSet<>();
-                for (FavoriteRow row : response.body()) {
-                    if (row.getPolishUid() != null) {
-                        uids.add(row.getPolishUid());
-                    }
+                Set<Long> ids = new HashSet<>();
+                for (DesignFavoriteRow row : response.body()) {
+                    ids.add(row.getDesignId());
                 }
-                callback.onSuccess(uids);
+                callback.onSuccess(ids);
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<FavoriteRow>> call, @NonNull Throwable t) {
-                callback.onError("Could not load favorites: " + t.getMessage());
+            public void onFailure(@NonNull Call<List<DesignFavoriteRow>> call, @NonNull Throwable t) {
+                callback.onError("Could not load design favorites: " + t.getMessage());
             }
         });
     }
 
-    private void doAddFavorite(String userId, String polishUid, FavoriteCallback callback) {
-        Map<String, String> body = new HashMap<>();
+    private void doAddFavorite(String userId, long designId, FavoriteCallback callback) {
+        Map<String, Object> body = new HashMap<>();
         body.put("user_id", userId);
-        body.put("polish_uid", polishUid);
-        Log.d(TAG, "POST user_favorite_polishes payload: " + body);
+        body.put("design_id", designId);
+        Log.d(TAG, "POST user_favorite_designs payload: " + body);
         favoritesApi.addFavorite(body).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call,
                                    @NonNull Response<ResponseBody> response) {
                 if (response.isSuccessful() || response.code() == 409) {
-                    //409 = unique violation, row already exists — treat as success
                     callback.onSuccess();
                 } else {
-                    callback.onError(RetrofitUtil.extractError("Add favorite", response));
+                    callback.onError(RetrofitUtil.extractError("Add design favorite", response));
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                callback.onError("Add favorite failed: " + t.getMessage());
+                callback.onError("Add design favorite failed: " + t.getMessage());
             }
         });
     }
 
-    public void removeFavorite(String polishUid, FavoriteCallback callback) {
-        //PostgREST filter: polish_uid=eq.xxx
-        String filterValue = "eq." + polishUid;
+    public void removeFavorite(long designId, FavoriteCallback callback) {
+        String filterValue = "eq." + designId;
         favoritesApi.removeFavorite(filterValue).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call,
@@ -155,14 +151,15 @@ public class FavoritesRepository {
                 if (response.isSuccessful()) {
                     callback.onSuccess();
                 } else {
-                    callback.onError(RetrofitUtil.extractError("Remove favorite", response));
+                    callback.onError(RetrofitUtil.extractError("Remove design favorite", response));
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                callback.onError("Remove favorite failed: " + t.getMessage());
+                callback.onError("Remove design favorite failed: " + t.getMessage());
             }
         });
     }
 }
+

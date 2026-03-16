@@ -24,17 +24,31 @@ import java.util.Set;
 public class PolishGridAdapter
         extends RecyclerView.Adapter<PolishGridAdapter.ViewHolder> {
 
+    public interface OnPolishClickListener {
+        void onPolishClick(Polish polish);
+    }
+
     private List<Polish> items = new ArrayList<>();
     private final Set<String> favoriteUids = new HashSet<>();
     @Nullable
     private final FavoritesRepository favoritesRepo;
+    @Nullable
+    private final OnPolishClickListener clickListener;
 
     public PolishGridAdapter() {
         this.favoritesRepo = null;
+        this.clickListener = null;
     }
 
     public PolishGridAdapter(@Nullable FavoritesRepository favoritesRepo) {
         this.favoritesRepo = favoritesRepo;
+        this.clickListener = null;
+    }
+
+    public PolishGridAdapter(@Nullable FavoritesRepository favoritesRepo,
+                             @Nullable OnPolishClickListener clickListener) {
+        this.favoritesRepo = favoritesRepo;
+        this.clickListener = clickListener;
     }
 
     public void setItems(List<Polish> items) {
@@ -77,6 +91,12 @@ public class PolishGridAdapter
 
         boolean isFavorite = favoriteUids.contains(uid);
         h.heartIcon.setImageResource(isFavorite ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+
+        h.itemView.setOnClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onPolishClick(p);
+            }
+        });
 
         h.heartIcon.setOnClickListener(v -> {
             if (favoritesRepo != null) {

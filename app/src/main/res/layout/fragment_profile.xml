@@ -101,10 +101,10 @@
                     android:drawableEnd="@drawable/arrow_right"/>
 
                 <TextView
-                    android:id="@+id/savedSalons"
+                    android:id="@+id/savedDesigns"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Saved Nail Salons"
+                    android:text="Saved Nail Designs"
                     android:padding="12dp"
                     android:textSize="16sp"
                     android:background="@drawable/row_bg"
