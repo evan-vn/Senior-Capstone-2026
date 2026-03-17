@@ -9,7 +9,6 @@
 
     <!-- App logo -->
     <ImageView
-        android:id="@+id/img_logo"
         android:layout_width="330dp"
         android:layout_height="210dp"
         android:src="@drawable/logo"

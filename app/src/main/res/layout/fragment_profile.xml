@@ -6,7 +6,6 @@
     android:fillViewport="true">
 
     <LinearLayout
-        android:id="@+id/profileLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -27,7 +26,6 @@
                 android:padding="16dp">
 
                 <ImageView
-                    android:id="@+id/profileImage"
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:layout_gravity="center"

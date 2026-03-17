@@ -22,7 +22,6 @@ public class PasswordGrantAuthProvider implements AuthProvider {
 
     private final AuthApi authApi;
     private final TokenStore tokenStore;
-    private String pendingEmail;
 
     public PasswordGrantAuthProvider(AuthApi authApi, TokenStore tokenStore) {
         this.authApi = authApi;
@@ -35,8 +34,6 @@ public class PasswordGrantAuthProvider implements AuthProvider {
             callback.onError("Password required for password grant flow");
             return;
         }
-
-        pendingEmail = email;
 
         Map<String, String> body = new HashMap<>();
         body.put("email", email);

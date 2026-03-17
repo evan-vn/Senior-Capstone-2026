@@ -18,7 +18,6 @@ import com.example.nailit.data.network.TokenStore;
 import com.example.nailit.data.repo.FavoritesRepository;
 import com.example.nailit.data.repo.PolishesRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 

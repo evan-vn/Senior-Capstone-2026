@@ -22,7 +22,6 @@
         <!-- First layout components -->
 
         <TextView
-            android:id="@+id/nameApp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
@@ -35,7 +34,6 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/describeFeature"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Describe Feature App Here"
@@ -214,7 +212,6 @@
                     app:srcCompat="@drawable/chatbot" />
 
                 <TextView
-                    android:id="@+id/botLable"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Style AI"

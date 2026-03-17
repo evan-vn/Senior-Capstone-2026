@@ -11,9 +11,6 @@ import retrofit2.http.Query;
 public interface PolishesApi {
 
     @GET("polishes")
-    Call<List<Polish>> getPolishes(@Query("select") String select);
-
-    @GET("polishes")
     Call<List<Polish>> getPolishesBySeason(
             @Query("select") String select,
             @Query("season_labels") String seasonFilter,

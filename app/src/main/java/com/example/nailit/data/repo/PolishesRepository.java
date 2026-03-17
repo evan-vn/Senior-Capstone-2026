@@ -39,26 +39,6 @@ public class PolishesRepository {
         this.polishesApi = ApiClient.getInstance(tokenStore).create(PolishesApi.class);
     }
 
-    public void getPolishes(PolishesCallback callback) {
-        polishesApi.getPolishes("*").enqueue(new Callback<List<Polish>>() {
-            @Override
-            public void onResponse(@NonNull Call<List<Polish>> call,
-                                   @NonNull Response<List<Polish>> response) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError(RetrofitUtil.extractError("Polishes", response));
-                    return;
-                }
-                Log.d(TAG, "Fetched " + response.body().size() + " polishes");
-                callback.onSuccess(response.body());
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<List<Polish>> call, @NonNull Throwable t) {
-                callback.onError("Polishes network error: " + t.getMessage());
-            }
-        });
-    }
-
     public void getTrendingPolishes(PolishesCallback callback) {
         polishesApi.getTrendingPolishes(SELECT_LIST_TRENDING, "favorite_count.desc", "30")
                 .enqueue(new Callback<List<Polish>>() {
