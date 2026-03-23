@@ -22,4 +22,4 @@ captures/
 # Logs
 *.log
 
-app/scripts/
+app/scripts/app/src/main/res/values/strings.xml
