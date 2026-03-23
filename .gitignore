@@ -28,3 +28,8 @@ app/scripts/.idea/
 ./Senior-Capstone-2026-location-update/app/src/main/res/values/strings.xml
 ./Senior-Capstone-2026-location-update/app/src/main/res/values/strings.xml
 app/src/main/res/values/strings.xml
+.idea/
+.gradle/
+build/
+local.properties
+app/src/main/res/values/strings.xml
