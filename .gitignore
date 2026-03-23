@@ -22,4 +22,8 @@ captures/
 # Logs
 *.log
 
-app/scripts/
+app/scripts/.idea/
+*.iml
+*.iml
+./Senior-Capstone-2026-location-update/app/src/main/res/values/strings.xml
+./Senior-Capstone-2026-location-update/app/src/main/res/values/strings.xml
