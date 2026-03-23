@@ -25,9 +25,8 @@ captures/
 app/scripts/.idea/
 *.iml
 *.iml
-./Senior-Capstone-2026-location-update/app/src/main/res/values/strings.xml
-./Senior-Capstone-2026-location-update/app/src/main/res/values/strings.xml
 app/src/main/res/values/strings.xml
+<<<<<<< HEAD
 .idea/
 .gradle/
 build/
@@ -35,3 +34,6 @@ local.properties
 app/src/main/res/values/strings.xml
 app/src/main/res/values/strings.xml
 app/src/main/res/values/strings.xml
+=======
+local.properties
+>>>>>>> 1166771 (Add saved salon screens and update profile fragments)
