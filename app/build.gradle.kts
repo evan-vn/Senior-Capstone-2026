@@ -52,10 +52,7 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
 
-    implementation ("org.tensorflow:tensorflow-lite:2.12.0")
-    implementation ("org.tensorflow:tensorflow-lite-support:0.4.3")
-    implementation ("org.tensorflow:tensorflow-lite-metadata:0.4.3")
-    implementation ("org.tensorflow:tensorflow-lite-select-tf-ops:2.12.0")
+
 
     //Google API
 
@@ -66,11 +63,13 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
 
+    //Detect hand and nail
 
-    implementation("org.tensorflow:tensorflow-lite:2.12.0")
-    implementation("org.tensorflow:tensorflow-lite-support:0.4.3")
-    implementation("org.tensorflow:tensorflow-lite-metadata:0.4.3")
-    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.12.0")
+    implementation ("com.google.mediapipe:tasks-vision:0.10.14")
+    implementation ("androidx.camera:camera-camera2:1.3.1")
+    implementation ("androidx.camera:camera-lifecycle:1.3.1")
+    implementation ("androidx.camera:camera-view:1.3.1")
+
 
     //Retrofit + OkHttp + Gson
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

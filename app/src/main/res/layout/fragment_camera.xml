@@ -3,14 +3,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Camera Preview -->
     <androidx.camera.view.PreviewView
-        android:id="@+id/cameraPreview"
+        android:id="@+id/previewView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="invisible"/>
 
-    <com.example.nailit.OverlayView
-        android:id="@+id/overlay"
+    <!-- Overlay for drawing nails -->
+    <ImageView
+        android:id="@+id/resultImage"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="visible"/>
 
 </FrameLayout>

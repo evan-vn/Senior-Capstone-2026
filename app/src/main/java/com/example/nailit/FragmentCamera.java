@@ -3,23 +3,28 @@ package com.example.nailit;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.os.Bundle;
-import android.util.Log;
+
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.Manifest;
+import android.widget.ImageView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.AspectRatio;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
@@ -28,38 +33,45 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.camera.view.PreviewView;
 
-import com.example.nailit.Utility.Helper;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mediapipe.framework.image.BitmapImageBuilder;
+import com.google.mediapipe.framework.image.MPImage;
+import com.google.mediapipe.tasks.components.containers.NormalizedLandmark;
+import com.google.mediapipe.tasks.core.BaseOptions;
+import com.google.mediapipe.tasks.vision.core.RunningMode;
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker;
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult;
 
-import org.tensorflow.lite.Interpreter;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 
 public class FragmentCamera extends Fragment {
     private PreviewView previewView;
-    private Helper helper;
-    private static final int  CAMERA_REQUEST_CODE= 100;
-    private static final int MODEL_DIMENTION=480;
-    private OverlayView overlayView;
+    HandLandmarker handLandmarker;
+    ImageView resultImage;
+    ImageCapture imageCapture;
 
+    private static final int  CAMERA_REQUEST_CODE= 100;
+
+    Bitmap latestBitmap;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
        View v = inflater.inflate(R.layout.fragment_camera, container, false);
-       previewView = v.findViewById(R.id.cameraPreview);
-       overlayView = v.findViewById(R.id.overlay);
-       //Call loading model
-        helper = new Helper();
-        helper.loadModel(requireContext());
+        previewView = v.findViewById(R.id.previewView);
+        resultImage = v.findViewById(R.id.resultImage);
+
+
+        previewView.setVisibility(View.VISIBLE);
+        resultImage.setVisibility(View.VISIBLE);
+        resultImage.setScaleType(ImageView.ScaleType.FIT_XY);
+
+        setupHandModel();
 
        if(ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
            startCamera();
@@ -71,139 +83,106 @@ public class FragmentCamera extends Fragment {
        return v;
     }
 
-    private final ExecutorService cameraExecutor = Executors.newSingleThreadExecutor();
 
-    private  void startCamera(){
+
+
+
+
+    private void startCamera() {
+
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
-                ProcessCameraProvider.getInstance(requireContext());
-        cameraProviderFuture.addListener(() -> {
-            try{
-                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                Preview preview = new Preview.Builder().build();
-                preview.setSurfaceProvider(previewView.getSurfaceProvider());
+                ProcessCameraProvider.getInstance(getContext());
 
-                //Image Analysis
+        cameraProviderFuture.addListener(() -> {
+
+            try {
+
+                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+
+                Preview preview = new Preview.Builder().build();
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                        .setTargetResolution(new Size(480, 640)) // smaller resolution = faster
                         .build();
-                imageAnalysis.setAnalyzer(cameraExecutor, this::analyzeImage);
 
-                CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+                imageAnalysis.setAnalyzer(
+                        Executors.newSingleThreadExecutor(),
+                        imageProxy -> {
+                            processFrame(imageProxy);  // your method to detect & color nails
+                            imageProxy.close();        // very important to avoid blocking camera
+                        }
+                );
+                preview.setSurfaceProvider(previewView.getSurfaceProvider());
+
+                imageCapture = new ImageCapture.Builder().build();
+
+                CameraSelector cameraSelector =
+                        CameraSelector.DEFAULT_BACK_CAMERA;
+
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
+                cameraProvider.bindToLifecycle(
+                        this,
+                        cameraSelector,
+                        preview,
+                        imageCapture,   // optional, keep if you want capture button
+                        imageAnalysis   // live frame analyzer
+                );
 
-
-            }catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-        },ContextCompat.getMainExecutor(requireContext()));
+
+        }, ContextCompat.getMainExecutor(getContext()));
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults) {
+
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_REQUEST_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+
+        if (requestCode == 100 &&
+                grantResults.length > 0 &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
             startCamera();
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        cameraExecutor.shutdown();
+    private void setupHandModel() {
+        BaseOptions baseOptions =
+                BaseOptions.builder()
+                        .setModelAssetPath("hand_landmarker.task")
+                        .build();
+
+        HandLandmarker.HandLandmarkerOptions options =
+                HandLandmarker.HandLandmarkerOptions.builder()
+                        .setBaseOptions(baseOptions)
+                        .setRunningMode(RunningMode.LIVE_STREAM)
+                        .setNumHands(1)
+                        .setResultListener((result, inputImage) -> {
+
+                            if (latestBitmap == null) return;
+
+                            Bitmap output = drawNails(latestBitmap, result);
+
+                            requireActivity().runOnUiThread(() ->
+                                    resultImage.setImageBitmap(output));
+                        })
+
+                        .build();
+        handLandmarker = HandLandmarker.createFromOptions(requireContext(), options);
     }
 
-    private void analyzeImage(ImageProxy imageProxy) {
-        try {
-            Bitmap bitmap = imageProxyToBitmap(imageProxy);
-            if (bitmap == null) return;
 
 
-            int size = Math.min(bitmap.getWidth(), bitmap.getHeight());
-            Bitmap square = Bitmap.createBitmap(
-                    bitmap,
-                    (bitmap.getWidth() - size) / 2,
-                    (bitmap.getHeight() - size) / 2,
-                    size,
-                    size
-            );
-            //
-            int rotation = imageProxy.getImageInfo().getRotationDegrees();
-            Matrix matrix = new Matrix();
-            matrix.postRotate(rotation);
-
-            Bitmap rotated = Bitmap.createBitmap(
-                    square,
-                    0, 0,
-                    square.getWidth(),
-                    square.getHeight(),
-                    matrix,
-                    true
-            );
 
 
-            Bitmap resized = Bitmap.createScaledBitmap(rotated, MODEL_DIMENTION, MODEL_DIMENTION, true);
-
-            ByteBuffer inputBuffer = convertBitmapToInput(resized);
-            inputBuffer.rewind();
-            Interpreter tflite = helper.getInterpreter();
-            if (tflite == null) return;
-
-            float[][][] output = new float[1][20][4725];
-            tflite.run(inputBuffer, output);
-
-            // ----------------------
-        // TEST A — Max objectness
-            // ----------------------
-            float maxObj = 0f;
-            for (int i = 0; i < 4725; i++) {
-                maxObj = Math.max(maxObj, output[0][4][i]);
-            }
-            Log.d("YOLO", "maxObj=" + maxObj);
-
-        // ----------------------
-        // 🔍 TEST B — Inspect raw x,y,w,h for anchor 0
-        // ----------------------
-            Log.d("YOLO", "x0=" + output[0][0][0]);
-            Log.d("YOLO", "y0=" + output[0][1][0]);
-            Log.d("YOLO", "w0=" + output[0][2][0]);
-            Log.d("YOLO", "h0=" + output[0][3][0]);
-
-            Log.d("YOLO", "out[0][4][0]=" + output[0][4][0]);
-            Log.d("YOLO", "out[0][4][100]=" + output[0][4][100]);
-            Log.d("YOLO", "out[0][4][1000]=" + output[0][4][1000]);
-
-
-            List<RectF> boxes = processYOLOOutput(output, 0.5f, 0.45f);
-            Log.d("YOLO", "detections=" + boxes.size());
-            // Scale boxes to screen size
-            float scaleX = (float) overlayView.getWidth() / MODEL_DIMENTION;
-            float scaleY = (float) overlayView.getHeight() / MODEL_DIMENTION;
-
-            List<RectF> scaled = new ArrayList<>();
-            for (RectF b : boxes) {
-                scaled.add(new RectF(
-                        b.left * scaleX,
-                        b.top * scaleY,
-                        b.right * scaleX,
-                        b.bottom * scaleY
-                ));
-            }
-            Log.d("YOLO", "bitmap=" + bitmap.getWidth() + "x" + bitmap.getHeight());
-            Log.d("YOLO", "square=" + square.getWidth() + "x" + square.getHeight());
-            Log.d("YOLO", "resized=" + resized.getWidth() + "x" + resized.getHeight());
-
-            requireActivity().runOnUiThread(() -> overlayView.setBoxes(scaled));
-
-            requireActivity().runOnUiThread(() -> overlayView.setBoxes(scaled));
-
-        } finally {
-            imageProxy.close();
-        }
-    }
 
     private Bitmap imageProxyToBitmap(ImageProxy image) {
+
         ImageProxy.PlaneProxy[] planes = image.getPlanes();
         ByteBuffer yBuffer = planes[0].getBuffer();
         ByteBuffer uBuffer = planes[1].getBuffer();
@@ -219,115 +198,96 @@ public class FragmentCamera extends Fragment {
         vBuffer.get(nv21, ySize, vSize);
         uBuffer.get(nv21, ySize + vSize, uSize);
 
-        YuvImage yuvImage = new YuvImage(
-                nv21,
-                ImageFormat.NV21,
-                image.getWidth(),
-                image.getHeight(),
-                null
-        );
+        YuvImage yuv = new YuvImage(nv21, ImageFormat.NV21,
+                image.getWidth(), image.getHeight(), null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuvImage.compressToJpeg(new Rect(0, 0, image.getWidth(), image.getHeight()), 100, out);
-        byte[] jpegBytes = out.toByteArray();
+        yuv.compressToJpeg(new Rect(0, 0, image.getWidth(), image.getHeight()), 100, out);
+        byte[] bytes = out.toByteArray();
 
-        Bitmap bitmap = BitmapFactory.decodeByteArray(jpegBytes, 0, jpegBytes.length);
-
-        return bitmap;
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }
+    private void processFrame(ImageProxy image) {
 
-    private ByteBuffer convertBitmapToInput(Bitmap bitmap) {
-        ByteBuffer input = ByteBuffer.allocateDirect(1 * MODEL_DIMENTION * MODEL_DIMENTION * 3 * 4);
-        input.order(ByteOrder.nativeOrder());
-
-        for (int y = 0; y < MODEL_DIMENTION; y++) {
-            for (int x = 0; x < MODEL_DIMENTION; x++) {
-                int pixel = bitmap.getPixel(x, y);
-
-                float r = ((pixel >> 16) & 0xFF) / 255f;
-                float g = ((pixel >> 8) & 0xFF) / 255f;
-                float b = (pixel & 0xFF) / 255f;
-
-                input.putFloat(r);
-                input.putFloat(g);
-                input.putFloat(b);
-            }
-        }
-        return input;
-    }
-    private List<RectF> processYOLOOutput(float[][][] output, float confThreshold, float iouThreshold) {
-        Log.d("YOLO","Inside process");
-        List<Detection> detections = new ArrayList<>();
-
-        for (int i = 0; i < 4725; i++) {
-            float obj = output[0][4][i];
-              // objectness score
-            if (obj < confThreshold) continue;
-
-            float x = output[0][0][i];
-            float y = output[0][1][i];
-            float w = output[0][2][i];
-            float h = output[0][3][i];
-
-
-            float left = x - w / 2f;
-            float top = y - h / 2f;
-            float right = x + w / 2f;
-            float bottom = y + h / 2f;
-            Log.d("YOLO", "obj=" + obj + " x=" + x + " y=" + y + " w=" + w + " h=" + h);
-            detections.add(new Detection(new RectF(left, top, right, bottom), obj));
+        if (handLandmarker == null) {
+            return;
         }
 
-        return nonMaxSuppression(detections, iouThreshold);
+        Bitmap bitmap = imageProxyToBitmap(image);
+
+        Matrix matrix = new Matrix();
+        matrix.postRotate(90);
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+        latestBitmap = bitmap;
+
+        MPImage mpImage = new BitmapImageBuilder(bitmap).build();
+
+        handLandmarker.detectAsync(mpImage, System.currentTimeMillis());
+
+        image.close();
     }
-    private List<RectF> nonMaxSuppression(List<Detection> dets, float iouThreshold) {
-        dets.sort((a, b) -> Float.compare(b.score, a.score));
 
-        List<RectF> results = new ArrayList<>();
 
-        boolean[] removed = new boolean[dets.size()];
 
-        for (int i = 0; i < dets.size(); i++) {
-            if (removed[i]) continue;
+    private Bitmap drawNails(Bitmap bitmap, HandLandmarkerResult result) {
 
-            RectF a = dets.get(i).box;
-            results.add(a);
+        Bitmap mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(mutable);
 
-            for (int j = i + 1; j < dets.size(); j++) {
-                if (removed[j]) continue;
+        if (result.landmarks().isEmpty())
+            return mutable;
 
-                RectF b = dets.get(j).box;
-                if (iou(a, b) > iouThreshold) {
-                    removed[j] = true;
-                }
-            }
+        List<NormalizedLandmark> landmarks = result.landmarks().get(0);
+
+        Paint nailPaint = new Paint();
+        nailPaint.setColor(Color.RED);
+        nailPaint.setAlpha(180);
+        nailPaint.setAntiAlias(true);
+
+        int[] tips = {4, 8, 12, 16, 20};
+        int[] pips = {3, 7, 11, 15, 19};
+
+        // 👇 per-finger sizes
+        float[] widths  = {26, 20, 22, 20, 16};
+        float[] heights = {14, 10, 12, 10, 8};
+
+        float forwardFactor = 0.3f; // move toward nail tip
+
+        for (int i = 0; i < tips.length; i++) {
+
+            int tip = tips[i];
+            int pip = pips[i];
+
+            float tipX = landmarks.get(tip).x() * bitmap.getWidth();
+            float tipY = landmarks.get(tip).y() * bitmap.getHeight();
+            float pipX = landmarks.get(pip).x() * bitmap.getWidth();
+            float pipY = landmarks.get(pip).y() * bitmap.getHeight();
+
+            float dx = tipX - pipX;
+            float dy = tipY - pipY;
+
+            // 👉 move forward instead of backward
+            float cx = tipX + dx * forwardFactor;
+            float cy = tipY + dy * forwardFactor;
+
+            float angle = (float) Math.toDegrees(Math.atan2(dy, dx));
+
+            canvas.save();
+            canvas.translate(cx, cy);
+            canvas.rotate(angle);
+
+            float w = widths[i];
+            float h = heights[i];
+
+            canvas.drawOval(-w, -h, w, h, nailPaint);
+
+            canvas.restore();
         }
 
-        return results;
+        return mutable;
     }
 
-    private float iou(RectF a, RectF b) {
-        float interLeft = Math.max(a.left, b.left);
-        float interTop = Math.max(a.top, b.top);
-        float interRight = Math.min(a.right, b.right);
-        float interBottom = Math.min(a.bottom, b.bottom);
-
-        float interArea = Math.max(0, interRight - interLeft) * Math.max(0, interBottom - interTop);
-        float areaA = (a.right - a.left) * (a.bottom - a.top);
-        float areaB = (b.right - b.left) * (b.bottom - b.top);
-
-        return interArea / (areaA + areaB - interArea);
-    }
-
-    private static class Detection {
-        RectF box;
-        float score;
-
-        Detection(RectF b, float s) {
-            box = b;
-            score = s;
-        }
-    }
 
 
 }
