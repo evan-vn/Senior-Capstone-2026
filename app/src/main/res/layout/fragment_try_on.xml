@@ -94,7 +94,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Colors Here"
-                    android:textSize="200sp"/>
+                    android:textSize="10sp"
+                    android:id="@+id/empTxtTryOn"/>
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/colorsRecyclerTryOn"
                     android:layout_width="match_parent"
