@@ -36,6 +36,12 @@ public class Polish {
     @SerializedName("thumbnail_data")
     private String thumbnailHex;
 
+    @SerializedName("season_labels")
+    private List<String> seasonLabels;
+
+    @SerializedName("occasion_labels")
+    private List<String> occasionLabels;
+
     public String getUid() { return uid; }
     public String getBrand() { return brand; }
     public String getCollection() { return collection; }
@@ -45,6 +51,8 @@ public class Polish {
     public String getHex() { return hex; }
     public int getFavoriteCount() { return favoriteCount; }
     public List<String> getSwatchImages() { return swatchImages; }
+    public List<String> getSeasonLabels() { return seasonLabels; }
+    public List<String> getOccasionLabels() { return occasionLabels; }
 
     //PostgREST sends bytea as hex string like \"\\\\xFFD8...\"; decode to bytes
     public byte[] getThumbnailBytes() {

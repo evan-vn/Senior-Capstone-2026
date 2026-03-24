@@ -1,6 +1,7 @@
 package com.example.nailit;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import com.example.nailit.data.repo.AuthRepository;
 import com.example.nailit.ui.FavoriteDesignsActivity;
 import com.example.nailit.ui.FavoritePolishesActivity;
 import com.example.nailit.ui.LoginActivity;
+import com.example.nailit.ui.SavedSalonsActivity;
 
 public class FragmentProfile extends Fragment {
 
@@ -33,7 +35,7 @@ public class FragmentProfile extends Fragment {
         View logoutBtn = view.findViewById(R.id.logout);
         View savedColors = view.findViewById(R.id.savedColors);
         View savedDesigns = view.findViewById(R.id.savedDesigns);
-
+        View savedSalon = view.findViewById(R.id.savedSalon);
         TokenStore tokenStore = new TokenStore(requireContext());
         authRepository = new AuthRepository(tokenStore);
 
@@ -42,6 +44,21 @@ public class FragmentProfile extends Fragment {
                 startActivity(new Intent(requireContext(), FavoritePolishesActivity.class)));
         savedDesigns.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), FavoriteDesignsActivity.class)));
+
+
+        savedSalon.setOnClickListener(v -> {
+            String userId = getUserIdForSalons();
+
+            if (userId == null || userId.isEmpty()) {
+                Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Intent intent = new Intent(requireContext(), SavedSalonsActivity.class);
+            intent.putExtra(SavedSalonsActivity.EXTRA_USER_ID, userId);
+            startActivity(intent);
+        });
+
         loadProfile();
         return view;
     }
@@ -80,5 +97,26 @@ public class FragmentProfile extends Fragment {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         requireActivity().finish();
+    }
+
+    private String getUserIdForSalons() {
+        TokenStore tokenStore = new TokenStore(requireContext());
+        String tokenUserId = tokenStore.getUserId();
+        if (tokenUserId != null && !tokenUserId.isEmpty()) {
+            return tokenUserId;
+        }
+
+        SharedPreferences prefs = requireContext()
+                .getSharedPreferences("NailItPrefs", android.content.Context.MODE_PRIVATE);
+
+        String userId = prefs.getString("user_id", null);
+        String appUserId = prefs.getString("app_user_id", null);
+        String authUserId = prefs.getString("auth_user_id", null);
+
+        if (userId != null && !userId.isEmpty()) return userId;
+        if (appUserId != null && !appUserId.isEmpty()) return appUserId;
+        if (authUserId != null && !authUserId.isEmpty()) return authUserId;
+
+        return null;
     }
 }

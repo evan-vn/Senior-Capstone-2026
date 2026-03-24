@@ -110,6 +110,19 @@
                     android:focusable="true"
                     android:drawableEnd="@drawable/arrow_right"
                     android:layout_marginTop="8dp"/>
+
+                <TextView
+                    android:id="@+id/savedSalon"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Saved Nail Salons"
+                    android:padding="12dp"
+                    android:textSize="16sp"
+                    android:background="@drawable/row_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:drawableEnd="@drawable/arrow_right"
+                    android:layout_marginTop="8dp"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

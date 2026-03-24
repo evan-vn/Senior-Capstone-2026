@@ -29,4 +29,23 @@ public interface PolishesApi {
             @Query("select") String select,
             @Query("uid") String uidInFilter
     );
+
+    @GET("polishes")
+    Call<List<Polish>> getPolishesForAi(
+            @Query("select") String select,
+            @Query("limit") String limit
+    );
+
+    @GET("polishes")
+    Call<List<Polish>> getPolishesForAiPaged(
+            @Query("select") String select,
+            @Query("limit") String limit,
+            @Query("offset") String offset,
+            @Query("order") String order
+    );
+
+    @GET("polishes")
+    Call<List<Polish>> getPolishesSimple(
+            @Query("limit") String limit
+    );
 }
