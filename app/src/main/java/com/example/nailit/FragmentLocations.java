@@ -552,6 +552,8 @@ public class FragmentLocations extends Fragment {
             return;
         }
 
+        saveUserIdForProfile(currentUserId);
+
         SavedSalonRequest request = new SavedSalonRequest(
                 currentUserId,
                 item.placeId,
@@ -632,6 +634,16 @@ public class FragmentLocations extends Fragment {
                         Toast.makeText(requireContext(), "Error removing salon", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void saveUserIdForProfile(String userId) {
+        if (!isAdded() || userId == null || userId.trim().isEmpty()) return;
+
+        requireContext()
+                .getSharedPreferences("NailItPrefs", android.content.Context.MODE_PRIVATE)
+                .edit()
+                .putString("user_id", userId)
+                .apply();
     }
 
 
