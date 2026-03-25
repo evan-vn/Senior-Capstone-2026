@@ -8,10 +8,12 @@ import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +35,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.camera.view.PreviewView;
 
+import com.example.nailit.data.model.Polish;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mediapipe.framework.image.BitmapImageBuilder;
 import com.google.mediapipe.framework.image.MPImage;
@@ -48,13 +51,20 @@ import java.nio.ByteBuffer;
 
 import java.util.List;
 import java.util.concurrent.Executors;
-
+import android.graphics.Path;
+import android.graphics.RectF;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 
 public class FragmentCamera extends Fragment {
     private PreviewView previewView;
     HandLandmarker handLandmarker;
     ImageView resultImage;
     ImageCapture imageCapture;
+    Polish selectedPolish;
+    String selectedHex;
+    String thumbnailHex;
+    Bitmap cachedPolishBitmap;
 
     private static final int  CAMERA_REQUEST_CODE= 100;
 
@@ -73,6 +83,8 @@ public class FragmentCamera extends Fragment {
 
         setupHandModel();
 
+
+
        if(ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
            startCamera();
        }else{
@@ -84,7 +96,52 @@ public class FragmentCamera extends Fragment {
     }
 
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
+        Bundle args = getArguments();
+        if (args != null) {
+            selectedHex = args.getString("hex");
+            thumbnailHex = args.getString("thumbnail");
+
+            Log.d("COLOR_DEBUG", "selectedHex = " + selectedHex);
+            Log.d("COLOR_DEBUG", "thumbnailHex = " + (thumbnailHex != null));
+        }
+
+        if (thumbnailHex != null) {
+            byte[] bytes = hexToBytes(thumbnailHex);
+            if (bytes != null) {
+                cachedPolishBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                Log.d("THUMB_DEBUG", "Bitmap decoded: " + (cachedPolishBitmap != null));
+                Log.d("THUMB_DEBUG", "bytes length = " + (bytes != null ? bytes.length : 0));
+                Log.d("THUMB_DEBUG", "bitmap = " + cachedPolishBitmap);
+            }
+        }
+    }
+
+    private byte[] hexToBytes(String hex) {
+        if (hex == null || hex.length() < 4) return null;
+
+        if (hex.startsWith("\\x") || hex.startsWith("\\X")) {
+            hex = hex.substring(2);
+        }
+
+        int len = hex.length();
+        if (len % 2 != 0) return null;
+
+        byte[] data = new byte[len / 2];
+
+        for (int i = 0; i < len; i += 2) {
+            int hi = Character.digit(hex.charAt(i), 16);
+            int lo = Character.digit(hex.charAt(i + 1), 16);
+            if (hi < 0 || lo < 0) return null;
+
+            data[i / 2] = (byte) ((hi << 4) + lo);
+        }
+
+        return data;
+    }
 
 
 
@@ -230,6 +287,7 @@ public class FragmentCamera extends Fragment {
 
 
 
+
     private Bitmap drawNails(Bitmap bitmap, HandLandmarkerResult result) {
 
         Bitmap mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true);
@@ -240,19 +298,20 @@ public class FragmentCamera extends Fragment {
 
         List<NormalizedLandmark> landmarks = result.landmarks().get(0);
 
-        Paint nailPaint = new Paint();
-        nailPaint.setColor(Color.RED);
-        nailPaint.setAlpha(180);
-        nailPaint.setAntiAlias(true);
+        // Smooth bitmap rendering
+        Paint bitmapPaint = new Paint();
+        bitmapPaint.setAntiAlias(true);
+        bitmapPaint.setFilterBitmap(true);
+        bitmapPaint.setDither(true);
 
         int[] tips = {4, 8, 12, 16, 20};
         int[] pips = {3, 7, 11, 15, 19};
 
-        // 👇 per-finger sizes
-        float[] widths  = {26, 20, 22, 20, 16};
-        float[] heights = {14, 10, 12, 10, 8};
+        // Improved sizes (more natural)
+        float[] widths  = {28, 22, 24, 22, 18};
+        float[] heights = {16, 12, 14, 12, 10};
 
-        float forwardFactor = 0.3f; // move toward nail tip
+        float forwardFactor = 0.5f; // better placement
 
         for (int i = 0; i < tips.length; i++) {
 
@@ -267,9 +326,13 @@ public class FragmentCamera extends Fragment {
             float dx = tipX - pipX;
             float dy = tipY - pipY;
 
-            // 👉 move forward instead of backward
             float cx = tipX + dx * forwardFactor;
             float cy = tipY + dy * forwardFactor;
+
+            //Move thumb nail downward
+            if(i==0){
+                cy += 6;
+            }
 
             float angle = (float) Math.toDegrees(Math.atan2(dy, dx));
 
@@ -280,14 +343,74 @@ public class FragmentCamera extends Fragment {
             float w = widths[i];
             float h = heights[i];
 
-            canvas.drawOval(-w, -h, w, h, nailPaint);
+            RectF rectF = new RectF(-w, -h, w, h);
+
+// Nail shape
+            Path nailPath = new Path();
+            nailPath.addRoundRect(rectF, w * 0.8f, h * 0.8f, Path.Direction.CW);
+
+            canvas.save();
+            canvas.clipPath(nailPath);
+
+
+
+
+//            if (cachedPolishBitmap != null) {
+//
+//              
+//                Rect dst = new Rect((int)-w, (int)-h, (int)w, (int)h);
+//
+//                Paint texturePaint = new Paint(bitmapPaint);
+//                texturePaint.setAlpha(230); // slight transparency
+//
+//                canvas.drawBitmap(cachedPolishBitmap, null, dst, texturePaint);
+//
+//                Paint glossPaint = new Paint();
+//                glossPaint.setShader(new LinearGradient(
+//                        -w, -h,
+//                        w, h,
+//                        Color.argb(80, 255, 255, 255),
+//                        Color.TRANSPARENT,
+//                        Shader.TileMode.CLAMP
+//                ));
+//                canvas.drawOval(rectF, glossPaint);
+//            }
+            if (selectedHex != null) {
+
+                Paint basePaint = new Paint();
+                basePaint.setColor(Color.parseColor(selectedHex));
+                basePaint.setAntiAlias(true);
+
+                // 👉 FULL solid fill (NO shadow)
+                canvas.drawOval(rectF, basePaint);
+
+                // 👉 VERY LIGHT gloss (don’t change color)
+                Paint glossPaint = new Paint();
+                glossPaint.setShader(new LinearGradient(
+                        0, -h,
+                        0, 0,
+                        Color.argb(60, 255, 255, 255),
+                        Color.TRANSPARENT,
+                        Shader.TileMode.CLAMP
+                ));
+                canvas.drawOval(rectF, glossPaint);
+            }
+
+            canvas.restore();
+
+            Paint edgePaint = new Paint();
+            edgePaint.setStyle(Paint.Style.STROKE);
+            edgePaint.setColor(Color.argb(80, 0, 0, 0));
+            edgePaint.setStrokeWidth(1.2f);
+            edgePaint.setAntiAlias(true);
+
+            canvas.drawOval(rectF, edgePaint);
 
             canvas.restore();
         }
 
         return mutable;
     }
-
 
 
 }
