@@ -54,11 +54,15 @@ public class AiRepository {
                     "}\n" +
                     "Rules:\n" +
                     "- Return 2 to 4 options maximum\n" +
-                    "- Keep labels short and natural, avoid vague or poetic labels\n" +
-                    "- base_color must be one of: black, white, silver, gold, nude, pink, red, burgundy, purple, blue, green, brown, coral\n" +
+                    "- Keep labels short and database-friendly\n" +
+                    "- Do not use vague labels like soft blush, rosy nude, dusty rose, sunset glow, or champagne kiss\n" +
+                    "- label must start with one of these exact color families when possible: black, white, gray silver, gold bronze, nude, pink, red, burgundy, purple, blue, green, orange coral, brown\n" +
+                    "- base_color must be one of: black, white, silver, gold, bronze, nude, pink, red, burgundy, purple, blue, green, brown, coral\n" +
                     "- finish must be one of: glossy, metallic, shimmer, glitter, cream, chrome, matte, sheer\n" +
                     "- depth must be one of: deep, medium, light\n" +
-                    "- Separate color from finish (finish is not a color)\n" +
+                    "- Separate color from finish\n" +
+                    "- Prefer labels like: burgundy cream, pink sheer, nude glossy, gold bronze shimmer\n" +
+                    "- Avoid labels that are not directly matchable to a nail polish color family\n" +
                     "- target_hsv_hint uses coarse buckets only\n" +
                     "- Keep arrays short and relevant\n" +
                     "- If the first detected outfit color is clearly dominant, prioritize that color family in at least one option\n" +
