@@ -29,39 +29,41 @@ public class AiRepository {
     private static final String MODEL = "gpt-4o-mini";
     private static final String SYSTEM_PROMPT =
             "You are a nail style assistant for a beauty app called NailIt.\n" +
-            "Your job is to suggest realistic nail polish shades based on the user's outfit, season, occasion, and style.\n" +
-            "Return valid JSON only. Do not include markdown. Do not include code fences.\n" +
-            "JSON schema:\n" +
-            "{\n" +
-            "  \"assistant_message\": \"short stylish response\",\n" +
-            "  \"options\": [\n" +
-            "    {\n" +
-            "      \"label\": \"deep burgundy\",\n" +
-            "      \"base_color\": \"burgundy\",\n" +
-            "      \"finish\": \"cream\",\n" +
-            "      \"depth\": \"deep\",\n" +
-            "      \"style_keywords\": [\"rich\", \"elegant\"],\n" +
-            "      \"color_keywords\": [\"burgundy\", \"wine\", \"deep red\", \"oxblood\"],\n" +
-            "      \"season_tags\": [\"fall\"],\n" +
-            "      \"occasion_tags\": [\"everyday\", \"formal\"],\n" +
-            "      \"target_hsv_hint\": {\n" +
-            "        \"hue_family\": \"red-purple\",\n" +
-            "        \"saturation\": \"medium-high\",\n" +
-            "        \"value\": \"low-medium\"\n" +
-            "      }\n" +
-            "    }\n" +
-            "  ]\n" +
-            "}\n" +
-            "Rules:\n" +
-            "- Return 2 to 4 options maximum\n" +
-            "- Keep labels short and natural, avoid vague or poetic labels\n" +
-            "- base_color must be one of: black, burgundy, red, gold, silver, nude, pink, purple\n" +
-            "- finish must be one of: glossy, metallic, shimmer, glitter, cream, chrome, matte, sheer\n" +
-            "- depth must be one of: deep, medium, light\n" +
-            "- Separate color from finish (finish is not a color)\n" +
-            "- target_hsv_hint uses coarse buckets only\n" +
-            "- Keep arrays short and relevant\n" +
-            "- JSON only";
+                    "Your job is to suggest realistic nail polish shades based on the user's outfit, season, occasion, and style.\n" +
+                    "Return valid JSON only. Do not include markdown. Do not include code fences.\n" +
+                    "JSON schema:\n" +
+                    "{\n" +
+                    "  \"assistant_message\": \"short stylish response\",\n" +
+                    "  \"options\": [\n" +
+                    "    {\n" +
+                    "      \"label\": \"sage green\",\n" +
+                    "      \"base_color\": \"green\",\n" +
+                    "      \"finish\": \"cream\",\n" +
+                    "      \"depth\": \"medium\",\n" +
+                    "      \"style_keywords\": [\"fresh\", \"clean\"],\n" +
+                    "      \"color_keywords\": [\"green\", \"sage\", \"olive\", \"mint\"],\n" +
+                    "      \"season_tags\": [\"spring\"],\n" +
+                    "      \"occasion_tags\": [\"casual\", \"daytime\"],\n" +
+                    "      \"target_hsv_hint\": {\n" +
+                    "        \"hue_family\": \"green\",\n" +
+                    "        \"saturation\": \"medium\",\n" +
+                    "        \"value\": \"medium\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "}\n" +
+                    "Rules:\n" +
+                    "- Return 2 to 4 options maximum\n" +
+                    "- Keep labels short and natural, avoid vague or poetic labels\n" +
+                    "- base_color must be one of: black, white, silver, gold, nude, pink, red, burgundy, purple, blue, green, brown, coral\n" +
+                    "- finish must be one of: glossy, metallic, shimmer, glitter, cream, chrome, matte, sheer\n" +
+                    "- depth must be one of: deep, medium, light\n" +
+                    "- Separate color from finish (finish is not a color)\n" +
+                    "- target_hsv_hint uses coarse buckets only\n" +
+                    "- Keep arrays short and relevant\n" +
+                    "- If the first detected outfit color is clearly dominant, prioritize that color family in at least one option\n" +
+                    "- Recommend options that can be matched to a real nail polish database\n" +
+                    "- JSON only";
 
     private final OpenAiApi openAiApi;
     private final PolishesRepository polishesRepository;
@@ -103,11 +105,13 @@ public class AiRepository {
 
                 String rawJson = body.getChoices().get(0).getMessage().getContent().trim();
                 Log.d(TAG, "Raw assistant JSON: " + rawJson);
+
                 AiSuggestionPayload payload = parsePayload(rawJson);
                 if (payload == null) {
                     callback.onError("Could not parse AI suggestion JSON");
                     return;
                 }
+
                 Log.d(TAG, "Parsed options count: " + payload.getOptions().size());
                 for (int i = 0; i < payload.getOptions().size(); i++) {
                     Log.d(TAG, "Option[" + i + "] label=" + payload.getOptions().get(i).getLabel()
@@ -125,7 +129,7 @@ public class AiRepository {
                     @Override
                     public void onSuccess(List<AiMatchedOption> options) {
                         String message = payload.getAssistantMessage();
-                        if (message.isEmpty()) {
+                        if (message == null || message.isEmpty()) {
                             message = "Here are some nail styles you might like.";
                         }
                         callback.onSuccess(new AiChatResult(message, options));
@@ -135,7 +139,7 @@ public class AiRepository {
                     public void onError(String message) {
                         Log.w(TAG, "Polish matching failed, returning text-only response: " + message);
                         String fallbackMessage = payload.getAssistantMessage();
-                        if (fallbackMessage.isEmpty()) {
+                        if (fallbackMessage == null || fallbackMessage.isEmpty()) {
                             fallbackMessage = "Here are some nail styles you might like.";
                         }
                         callback.onSuccess(new AiChatResult(
@@ -153,7 +157,7 @@ public class AiRepository {
         });
     }
 
-    //Temporary debug helper to isolate Neon candidate fetch from AI scoring.
+    // Temporary debug helper to isolate Neon candidate fetch from AI scoring.
     public void debugFetchAiCandidates() {
         polishesRepository.debugControlFetch(new PolishesRepository.PolishesCallback() {
             @Override
@@ -195,9 +199,10 @@ public class AiRepository {
 
     private List<AiMatchedOption> buildEmptyMatchedOptions(AiSuggestionPayload payload) {
         List<AiMatchedOption> empty = new ArrayList<>();
-        if (payload == null) return empty;
+        if (payload == null || payload.getOptions() == null) return empty;
+
         for (int i = 0; i < payload.getOptions().size(); i++) {
-            String label = payload.getOptions().get(i).getLabel();
+            String label = safe(payload.getOptions().get(i).getLabel());
             empty.add(new AiMatchedOption(
                     label.isEmpty() ? "Suggested style" : label,
                     payload.getOptions().get(i).getColorKeywords(),
@@ -208,5 +213,8 @@ public class AiRepository {
         }
         return empty;
     }
-}
 
+    private String safe(String value) {
+        return value == null ? "" : value;
+    }
+}
