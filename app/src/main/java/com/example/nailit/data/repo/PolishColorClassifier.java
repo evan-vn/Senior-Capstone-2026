@@ -76,6 +76,44 @@ public class PolishColorClassifier {
             return BURGUNDY;
         }
 
+        if (containsWholeWord(optionText, "pink")
+                || containsWholeWord(optionText, "light pink")
+                || containsWholeWord(optionText, "soft pink")
+                || containsWholeWord(optionText, "baby pink")
+                || containsWholeWord(optionText, "blush pink")
+                || containsWholeWord(optionText, "rose")) {
+            return PINK;
+        }
+
+        if (containsWholeWord(optionText, "blush")
+                || containsWholeWord(optionText, "nude")
+                || containsWholeWord(optionText, "beige")
+                || containsWholeWord(optionText, "taupe")) {
+            return NUDE;
+        }
+
+        if (containsWholeWord(optionText, "gold")
+                || containsWholeWord(optionText, "bronze")
+                || containsWholeWord(optionText, "champagne")) {
+            return GOLD_BRONZE;
+        }
+
+        if (containsWholeWord(optionText, "silver")
+                || containsWholeWord(optionText, "gray")
+                || containsWholeWord(optionText, "grey")
+                || containsWholeWord(optionText, "chrome")) {
+            return GRAY_SILVER;
+        }
+
+        if (containsWholeWord(optionText, "orange")
+                || containsWholeWord(optionText, "coral")
+                || containsWholeWord(optionText, "peach")
+                || containsWholeWord(optionText, "apricot")
+                || containsWholeWord(optionText, "tangerine")) {
+            return ORANGE_CORAL;
+        }
+
+
         return classifyFromTextAndHex(optionText, null);
     }
 
