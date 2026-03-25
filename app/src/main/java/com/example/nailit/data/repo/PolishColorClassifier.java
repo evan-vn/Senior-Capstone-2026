@@ -60,18 +60,22 @@ public class PolishColorClassifier {
 
     public String classifyOptionIntent(String label, List<String> colorKeywords) {
         StringBuilder sb = new StringBuilder(normalize(label));
+
         if (colorKeywords != null) {
             for (String keyword : colorKeywords) {
                 sb.append(" ").append(normalize(keyword));
             }
         }
+
         String optionText = sb.toString();
+
         if (containsWholeWord(optionText, "burgundy")
                 || containsWholeWord(optionText, "wine")
                 || containsWholeWord(optionText, "oxblood")
                 || containsWholeWord(optionText, "maroon")) {
             return BURGUNDY;
         }
+
         return classifyFromTextAndHex(optionText, null);
     }
 
@@ -127,32 +131,57 @@ public class PolishColorClassifier {
             int r = Integer.parseInt(hex.substring(0, 2), 16);
             int g = Integer.parseInt(hex.substring(2, 4), 16);
             int b = Integer.parseInt(hex.substring(4, 6), 16);
+
             int lum = (int) (0.2126 * r + 0.7152 * g + 0.0722 * b);
-            boolean neutral = Math.abs(r - g) < 20 && Math.abs(g - b) < 20;
+            boolean neutral = Math.abs(r - g) < 18 && Math.abs(g - b) < 18;
 
             if (lum < 45) return BLACK;
-            if (lum > 235) return WHITE;
-            if (neutral && lum >= 165 && lum <= 235) return GRAY_SILVER;
+
+            if (r >= 230 && g >= 230 && b >= 230) return WHITE;
+            if (r >= 220 && g >= 220 && b >= 210) return WHITE;
+
+            if (neutral && lum >= 165 && lum < 220) return GRAY_SILVER;
             if (neutral && lum >= 115 && lum < 165) return BROWN;
 
+            // orange
+            if (r >= 170 && g >= 85 && g <= 190 && b <= 125 && r > g && g > b) {
+                return ORANGE_CORAL;
+            }
+
+            // red / burgundy
             if (r > g + 35 && r > b + 35) {
-                if (g > 150 && b < 120) return ORANGE_CORAL;
+                if (r < 140 && b < 90) return BURGUNDY;
+                if (g > 100 && b < 120) return ORANGE_CORAL;
                 if (b > 95) return PURPLE;
                 return RED;
             }
-            if (b > r + 25 && b > g + 15) {
+
+            // blue
+            if (b > r + 30 && b > g + 20) {
                 if (r > 145 && b > 145) return PURPLE;
                 return BLUE;
             }
+
+            // green
             if (g > r + 20 && g > b + 20) return GREEN;
 
-            if (r > 200 && g > 170 && b > 150) return NUDE;
-            if (r > 180 && g > 145 && b < 120) return GOLD_BRONZE;
+            // white / nude / brown fallback
+            if (lum > 220 && sApprox(r, g, b) < 0.12f) return WHITE;
+            if (r > 185 && g > 165 && b > 145) return NUDE;
+            if (neutral && lum >= 95 && lum < 160) return BROWN;
 
             return BROWN;
+
         } catch (Exception ignored) {
             return NUDE;
         }
+    }
+
+    private float sApprox(int r, int g, int b) {
+        float max = Math.max(r, Math.max(g, b)) / 255f;
+        float min = Math.min(r, Math.min(g, b)) / 255f;
+        if (max == 0f) return 0f;
+        return (max - min) / max;
     }
 
     private boolean containsWholeWord(String text, String keyword) {
@@ -179,7 +208,11 @@ public class PolishColorClassifier {
 
     private String normalize(String value) {
         if (value == null) return "";
-        return value.trim().toLowerCase(Locale.US).replaceAll("[^a-z0-9\\s]+", " ").replaceAll("\\s+", " ").trim();
+        return value.trim()
+                .toLowerCase(Locale.US)
+                .replaceAll("[^a-z0-9\\s]+", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 
     private String safe(String value) {
@@ -195,8 +228,8 @@ public class PolishColorClassifier {
         map.put(BURGUNDY, asList("burgundy", "wine", "oxblood", "maroon", "deep burgundy"));
         map.put(RED, asList("red", "wine", "burgundy", "cherry", "crimson", "ruby", "scarlet", "maroon"));
         map.put(PURPLE, asList("purple", "plum", "violet", "berry", "mauve", "orchid", "eggplant", "lavender"));
-        map.put(PINK, asList("pink", "rose", "bubblegum", "fuchsia", "magenta"));
-        map.put(NUDE, asList("nude", "beige", "taupe", "peach nude", "blush", "neutral", "skin tone", "soft pink"));
+        map.put(PINK, asList("pink", "light pink", "soft pink", "baby pink", "blush pink", "rose", "bubblegum", "fuchsia", "magenta"));
+        map.put(NUDE, asList("nude", "beige", "taupe", "peach nude", "blush", "neutral", "skin tone"));
         map.put(BLUE, asList("blue", "teal", "navy", "cobalt", "azure"));
         map.put(GREEN, asList("green", "emerald", "olive", "mint", "sage"));
         map.put(ORANGE_CORAL, asList("orange", "coral", "apricot", "tangerine", "peach"));
@@ -208,4 +241,3 @@ public class PolishColorClassifier {
         return new ArrayList<>(Arrays.asList(values));
     }
 }
-
