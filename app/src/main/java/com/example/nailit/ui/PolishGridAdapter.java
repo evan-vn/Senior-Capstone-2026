@@ -1,5 +1,6 @@
 package com.example.nailit.ui;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +25,11 @@ import java.util.Set;
 public class PolishGridAdapter
         extends RecyclerView.Adapter<PolishGridAdapter.ViewHolder> {
 
+    //Polish selectedPolish;
     public interface OnPolishClickListener {
         void onPolishClick(Polish polish);
     }
+    private OnPolishClickListener listener;
 
     private List<Polish> items = new ArrayList<>();
     private final Set<String> favoriteUids = new HashSet<>();
@@ -43,6 +46,9 @@ public class PolishGridAdapter
     public PolishGridAdapter(@Nullable FavoritesRepository favoritesRepo) {
         this.favoritesRepo = favoritesRepo;
         this.clickListener = null;
+    }
+    public void setOnPolishClickListener(OnPolishClickListener listener) {
+        this.listener = listener;
     }
 
     public PolishGridAdapter(@Nullable FavoritesRepository favoritesRepo,
@@ -93,8 +99,9 @@ public class PolishGridAdapter
         h.heartIcon.setImageResource(isFavorite ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
 
         h.itemView.setOnClickListener(v -> {
-            if (clickListener != null) {
-                clickListener.onPolishClick(p);
+            Log.d("ADAPTER_CLICK", "Clicked position: " + position);
+            if (listener != null) {
+                listener.onPolishClick(p);
             }
         });
 

@@ -33,6 +33,7 @@ public class FragmentTryOn extends Fragment {
     private PolishGridAdapter adapter;
     private FavoritesRepository favoritesRepo;
     private PolishesRepository polishesRepo;
+    Polish selectedPolish;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -48,13 +49,33 @@ public class FragmentTryOn extends Fragment {
         colorsRecyclerTryOn.setLayoutManager(new GridLayoutManager(getContext(), 2));
         adapter = new PolishGridAdapter(favoritesRepo);
         colorsRecyclerTryOn.setAdapter(adapter);
+        colorsRecyclerTryOn.setVisibility(View.VISIBLE);
+
+        adapter.setOnPolishClickListener(polish -> {
+            selectedPolish = polish;
+            Log.d("FRAGMENT_CLICK", "Selected: " + polish.getShadeName());
+            Toast.makeText(getContext(), "Selected: " + polish.getShadeName(), Toast.LENGTH_SHORT).show();
+
+        });
 
         loadFavorites();
+
+
 
         tryOnBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Fragment cameraFragment = new FragmentCamera();
+                if(selectedPolish == null){
+                    Toast.makeText(getContext(), "Please  pick a color first!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                FragmentCamera cameraFragment = new FragmentCamera();
+                Bundle bundle = new Bundle();
+                bundle.putString("hex", selectedPolish.getHex());
+                bundle.putString("thumbnail", selectedPolish.getThumbnailHex());
+                cameraFragment.setArguments(bundle);
+
                 requireActivity().getSupportFragmentManager()
                         .beginTransaction()
                         .replace(R.id.middleLayout, cameraFragment)
@@ -122,7 +143,10 @@ public class FragmentTryOn extends Fragment {
             showEmpty();
             return;
         }
-
+        for (Polish p:polishes){
+            Log.d("Polish", p.getHex());
+            Log.d("Polish",p.getShadeName());
+        }
         colorsRecyclerTryOn.setVisibility(View.VISIBLE);
         adapter.setItems(polishes);
     }

@@ -86,6 +86,9 @@ public class Polish {
         }
         return null;
     }
+    public String getThumbnailHex(){
+        return thumbnailHex;
+    }
 
     public static Polish create(String uid, String shadeName, String brand,
                                 String hex) {
