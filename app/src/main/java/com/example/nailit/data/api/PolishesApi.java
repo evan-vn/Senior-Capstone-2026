@@ -48,4 +48,49 @@ public interface PolishesApi {
     Call<List<Polish>> getPolishesSimple(
             @Query("limit") String limit
     );
+
+    @GET("polishes")
+    Call<List<Polish>> getDistinctBrands(
+            @Query("select") String select,
+            @Query("order") String order,
+            @Query("limit") String limit
+    );
+
+    @GET("polishes")
+    Call<List<Polish>> getDistinctCollectionsByBrand(
+            @Query("select") String select,
+            @Query("brand") String brandFilter,
+            @Query("order") String order,
+            @Query("limit") String limit
+    );
+
+    @GET("polishes")
+    Call<List<Polish>> getPolishesByBrandAndCollection(
+            @Query("select") String select,
+            @Query("brand") String brandFilter,
+            @Query("collection") String collectionFilter,
+            @Query("order") String order,
+            @Query("limit") String limit
+    );
+
+    @GET("polishes")
+    Call<List<Polish>> getPolishesByBrandAndCollectionLightweightPaged(
+            @Query("select") String select,
+            @Query("brand") String brandFilter,
+            @Query("collection") String collectionFilter,
+            @Query("order") String order,
+            @Query("limit") String limit,
+            @Query("offset") String offset
+    );
+
+    @GET("polishes")
+    Call<List<Polish>> searchPolishesByNameAndFiltersLightweightPaged(
+            @Query("select") String select,
+            @Query("shade_name") String shadeNameFilter,
+            @Query("brand") String brandFilter,
+            @Query("collection") String collectionFilter,
+            @Query("order") String order,
+            @Query("limit") String limit,
+            @Query("offset") String offset
+    );
 }

@@ -36,8 +36,18 @@ public class ChatPolishAdapter extends RecyclerView.Adapter<ChatPolishAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Polish polish = items.get(position);
-        holder.name.setText(polish.getShadeName() != null ? polish.getShadeName() : "—");
-        holder.brand.setText(polish.getBrand() != null ? polish.getBrand() : "");
+        String brand = polish.getBrand() != null ? polish.getBrand().trim() : "";
+        String shade = polish.getShadeName() != null ? polish.getShadeName().trim() : "";
+        String displayName;
+        if (!brand.isEmpty() && !shade.isEmpty()) {
+            displayName = brand + " - " + shade;
+        } else if (!shade.isEmpty()) {
+            displayName = shade;
+        } else {
+            displayName = "—";
+        }
+        holder.name.setText(displayName);
+        holder.brand.setText(brand);
 
         byte[] thumb = polish.getThumbnailBytes();
         Object source = thumb != null ? (Object) thumb : polish.getSwatchUrl();
@@ -67,4 +77,3 @@ public class ChatPolishAdapter extends RecyclerView.Adapter<ChatPolishAdapter.Vi
         }
     }
 }
-

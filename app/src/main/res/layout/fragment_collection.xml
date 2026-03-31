@@ -32,8 +32,155 @@
             android:textAlignment="center"
             android:textSize="15sp" />
 
+        <!-- BROWSE / SEARCH -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/browseCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="10dp"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <EditText
+                        android:id="@+id/brandSearchInput"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="Search polish name (e.g. Funny Bunny)"
+                        android:imeOptions="actionDone"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"
+                        android:textSize="15sp" />
+
+                    <ImageView
+                        android:id="@+id/browseClearButton"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="Clear"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/brandFilterChipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:visibility="visible"
+                    app:singleLine="false"
+                    app:singleSelection="false" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/collectionsChipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    app:singleLine="false"
+                    app:singleSelection="false" />
+
+                <TextView
+                    android:id="@+id/browseEmptyText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAlignment="center"
+                    android:textColor="#999999"
+                    android:textSize="13sp"
+                    android:visibility="gone"
+                    tools:text="No brands found" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- BROWSE RESULTS (separate from Trending/Season card) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/browseResultsCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:id="@+id/browseResultsTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Browse Results"
+                    android:textSize="16sp" />
+
+                <ProgressBar
+                    android:id="@+id/browseResultsProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/browseResultsEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:textAlignment="center"
+                    android:textSize="13sp"
+                    android:textColor="#999999"
+                    android:visibility="gone"
+                    tools:text="Select a collection" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/browseResultsRecycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:layout_marginTop="6dp" />
+
+                <Button
+                    android:id="@+id/browseLoadMoreButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Load More"
+                    android:textAllCaps="false"
+                    android:visibility="gone" />
+
+                <ProgressBar
+                    android:id="@+id/browseLoadMoreProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- GRID OF SEASONS -->
         <GridLayout
+            android:id="@+id/seasonTabsGrid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:alignmentMode="alignMargins"
@@ -42,7 +189,6 @@
             android:gravity="center"
             android:useDefaultMargins="true">
 
-            <!-- SPRING -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/springCardView"
                 android:layout_width="70dp"
@@ -72,7 +218,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- SUMMER -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/summerCardView"
                 android:layout_width="70dp"
@@ -102,7 +247,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- AUTUMN -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/autumnCardView"
                 android:layout_width="70dp"
@@ -132,7 +276,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- WINTER -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/winterCardView"
                 android:layout_width="70dp"
@@ -162,7 +305,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- TRENDING -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/tredingCardView"
                 android:layout_width="70dp"
@@ -194,8 +336,8 @@
 
         </GridLayout>
 
-        <!-- SEASON COLORS CARD -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/seasonPolishesCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -208,7 +350,6 @@
                 android:orientation="vertical"
                 android:padding="5dp">
 
-                <!-- Header -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -269,12 +410,11 @@
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false"
                     android:layout_marginTop="4dp" />
-
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- STYLING TIPS -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/stylingTipsCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"

@@ -1,5 +1,7 @@
 package com.example.nailit.ui;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,28 +27,28 @@ import java.util.Set;
 public class PolishGridAdapter
         extends RecyclerView.Adapter<PolishGridAdapter.ViewHolder> {
 
-    //Polish selectedPolish;
     public interface OnPolishClickListener {
         void onPolishClick(Polish polish);
     }
+
+    @Nullable
     private OnPolishClickListener listener;
 
     private List<Polish> items = new ArrayList<>();
     private final Set<String> favoriteUids = new HashSet<>();
     @Nullable
     private final FavoritesRepository favoritesRepo;
-    @Nullable
-    private final OnPolishClickListener clickListener;
 
     public PolishGridAdapter() {
         this.favoritesRepo = null;
-        this.clickListener = null;
+        this.listener = null;
     }
 
     public PolishGridAdapter(@Nullable FavoritesRepository favoritesRepo) {
         this.favoritesRepo = favoritesRepo;
-        this.clickListener = null;
+        this.listener = null;
     }
+
     public void setOnPolishClickListener(OnPolishClickListener listener) {
         this.listener = listener;
     }
@@ -54,7 +56,7 @@ public class PolishGridAdapter
     public PolishGridAdapter(@Nullable FavoritesRepository favoritesRepo,
                              @Nullable OnPolishClickListener clickListener) {
         this.favoritesRepo = favoritesRepo;
-        this.clickListener = clickListener;
+        this.listener = clickListener;
     }
 
     public void setItems(List<Polish> items) {
@@ -83,17 +85,37 @@ public class PolishGridAdapter
         Polish p = items.get(position);
         String uid = p.getUid();
 
-        h.tvName.setText(p.getShadeName() != null ? p.getShadeName() : "—");
+        String brand = p.getBrand() != null ? p.getBrand().trim() : "";
+        String shade = p.getShadeName() != null ? p.getShadeName().trim() : "";
+        String displayName;
+        if (!brand.isEmpty() && !shade.isEmpty()) {
+            displayName = brand + " - " + shade;
+        } else if (!shade.isEmpty()) {
+            displayName = shade;
+        } else {
+            displayName = "—";
+        }
+        h.tvName.setText(displayName);
 
         byte[] thumb = p.getThumbnailBytes();
-        Object source = thumb != null ? (Object) thumb : p.getSwatchUrl();
+        String swatchUrl = p.getSwatchUrl();
+        Integer fallbackColor = tryParseHex(p.getHex());
 
-        Glide.with(h.itemView.getContext())
-                .load(source)
-                .placeholder(R.drawable.placeholder_swatch)
-                .error(R.drawable.placeholder_swatch)
-                .centerCrop()
-                .into(h.swatchImage);
+        Object source = thumb != null ? (Object) thumb : swatchUrl;
+
+        if (source != null) {
+            Glide.with(h.itemView.getContext())
+                    .load(source)
+                    .placeholder(R.drawable.placeholder_swatch)
+                    .error(R.drawable.placeholder_swatch)
+                    .centerCrop()
+                    .into(h.swatchImage);
+        } else if (fallbackColor != null) {
+            Log.d("SEARCH_RENDER", "uid=" + uid + " fallbackColorFromHex=true hex=" + p.getHex());
+            h.swatchImage.setImageDrawable(new ColorDrawable(fallbackColor));
+        } else {
+            h.swatchImage.setImageDrawable(null);
+        }
 
         boolean isFavorite = favoriteUids.contains(uid);
         h.heartIcon.setImageResource(isFavorite ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
@@ -147,6 +169,20 @@ public class PolishGridAdapter
                 notifyItemChanged(position);
             }
         });
+    }
+
+    private Integer tryParseHex(String hex) {
+        if (hex == null) return null;
+        String clean = hex.trim();
+        if (clean.isEmpty()) return null;
+        if (!clean.startsWith("#")) {
+            clean = "#" + clean;
+        }
+        try {
+            return Color.parseColor(clean);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     @Override

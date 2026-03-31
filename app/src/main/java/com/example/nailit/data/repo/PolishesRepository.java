@@ -32,8 +32,10 @@ public class PolishesRepository {
 
     private static final String TAG = "PolishesRepository";
     private static final String FETCH_DEBUG_TAG = "AI_FETCH_DEBUG";
+    private static final String BROWSE_DEBUG_TAG = "SEARCH_FETCH";
     private static final int MIN_MATCH_SCORE = 6;
     private static final int MIN_FALLBACK_SCORE = 5;
+    private static final int BROWSE_PAGE_SIZE = 20;
 
     private static final String SELECT_LIST_BASE =
             "uid,brand,collection,shade_name,shade_code,description,hex,swatch_images,thumbnail_data";
@@ -52,6 +54,11 @@ public class PolishesRepository {
 
     public interface PolishesCallback {
         void onSuccess(List<Polish> polishes);
+        void onError(String message);
+    }
+
+    public interface StringsCallback {
+        void onSuccess(List<String> values);
         void onError(String message);
     }
 
@@ -86,6 +93,67 @@ public class PolishesRepository {
                 });
     }
 
+    public void getDistinctBrands(StringsCallback callback) {
+        polishesApi.getDistinctBrands("brand", "brand.asc", "2000")
+                .enqueue(new Callback<List<Polish>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<Polish>> call,
+                                           @NonNull Response<List<Polish>> response) {
+                        if (!response.isSuccessful() || response.body() == null) {
+                            callback.onError(RetrofitUtil.extractError("Brands", response));
+                            return;
+                        }
+                        callback.onSuccess(extractDistinctStrings(response.body(), true));
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<List<Polish>> call, @NonNull Throwable t) {
+                        callback.onError("Brands network error: " + t.getMessage());
+                    }
+                });
+    }
+
+    public void getCollectionsByBrand(String brand, StringsCallback callback) {
+        if (brand == null || brand.trim().isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+        String filter = "eq." + brand.trim();
+        polishesApi.getDistinctCollectionsByBrand("collection", filter, "collection.asc", "2000")
+                .enqueue(new Callback<List<Polish>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<Polish>> call,
+                                           @NonNull Response<List<Polish>> response) {
+                        if (!response.isSuccessful() || response.body() == null) {
+                            callback.onError(RetrofitUtil.extractError("Collections", response));
+                            return;
+                        }
+                        callback.onSuccess(extractDistinctStrings(response.body(), false));
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<List<Polish>> call, @NonNull Throwable t) {
+                        callback.onError("Collections network error: " + t.getMessage());
+                    }
+                });
+    }
+
+    private List<String> extractDistinctStrings(List<Polish> rows, boolean useBrand) {
+        List<String> out = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        if (rows == null) return out;
+        for (Polish p : rows) {
+            String raw = useBrand ? safe(p.getBrand()) : safe(p.getCollection());
+            String value = raw.trim();
+            if (value.isEmpty()) continue;
+            if (seen.add(value.toLowerCase(Locale.US))) {
+                out.add(value);
+            }
+        }
+        Collections.sort(out, String::compareToIgnoreCase);
+        return out;
+    }
+
     public void getPolishesByUids(Collection<String> uids, PolishesCallback callback) {
         if (uids == null || uids.isEmpty()) {
             callback.onSuccess(new ArrayList<>());
@@ -117,6 +185,11 @@ public class PolishesRepository {
                         callback.onError("Polishes network error: " + t.getMessage());
                     }
                 });
+    }
+
+    public void hydratePolishesByUids(Collection<String> uids, PolishesCallback callback) {
+        Log.d(BROWSE_DEBUG_TAG, "SEARCH_HYDRATE count=" + (uids != null ? uids.size() : 0));
+        getPolishesByUids(uids, callback);
     }
 
     public void getPolishesByAiSuggestions(AiSuggestionPayload payload, AiPolishesCallback callback) {
@@ -996,5 +1069,145 @@ public class PolishesRepository {
         sb.append("]");
         return sb.toString();
     }
+
+public void getCollectionsByBrands(List<String> brands, StringsCallback callback) {
+    if (brands == null || brands.isEmpty()) {
+        callback.onSuccess(new ArrayList<>());
+        return;
+    }
+
+    List<String> uniqueBrands = new ArrayList<>();
+    Set<String> seen = new HashSet<>();
+    for (String b : brands) {
+        if (b == null) continue;
+        String clean = b.trim();
+        if (clean.isEmpty()) continue;
+        String key = clean.toLowerCase(Locale.US);
+        if (seen.add(key)) uniqueBrands.add(clean);
+    }
+
+    if (uniqueBrands.isEmpty()) {
+        callback.onSuccess(new ArrayList<>());
+        return;
+    }
+
+    Set<String> collectionsAcc = new HashSet<>();
+    fetchCollectionsByBrandsSequential(uniqueBrands, 0, collectionsAcc, callback);
 }
 
+private void fetchCollectionsByBrandsSequential(List<String> brands,
+                                                int index,
+                                                Set<String> acc,
+                                                StringsCallback callback) {
+    if (index >= brands.size()) {
+        callback.onSuccess(new ArrayList<>(acc));
+        return;
+    }
+
+    String brand = brands.get(index);
+    getCollectionsByBrand(brand, new StringsCallback() {
+        @Override
+        public void onSuccess(List<String> values) {
+            if (values != null) {
+                for (String c : values) {
+                    if (c == null) continue;
+                    String clean = c.trim();
+                    if (clean.isEmpty()) continue;
+                    acc.add(clean);
+                }
+            }
+            fetchCollectionsByBrandsSequential(brands, index + 1, acc, callback);
+        }
+
+        @Override
+        public void onError(String message) {
+            Log.w(BROWSE_DEBUG_TAG, "getCollectionsByBrands error brand=" + brand
+                    + " index=" + index + " message=" + message);
+            fetchCollectionsByBrandsSequential(brands, index + 1, acc, callback);
+        }
+    });
+}
+
+public void searchPolishesLightweightByNameAndFilters(String query,
+                                                      List<String> brands,
+                                                      List<String> collections,
+                                                      int limit,
+                                                      int offset,
+                                                      PolishesCallback callback) {
+    String safeQuery = query != null ? query.trim() : "";
+    int safeLimit = limit > 0 ? limit : BROWSE_PAGE_SIZE;
+    int safeOffset = Math.max(offset, 0);
+
+    String shadeNameFilter = safeQuery.isEmpty() ? null : "ilike.*" + safeQuery + "*";
+    String brandFilter = buildEqOrInFilter(brands);
+    String collectionFilter = buildEqOrInFilter(collections);
+
+    Log.d(BROWSE_DEBUG_TAG,
+            "SEARCH_FETCH nameQuery=" + safeQuery
+                    + " brandsFilter=" + brandFilter
+                    + " collectionsFilter=" + collectionFilter
+                    + " limit=" + safeLimit
+                    + " offset=" + safeOffset);
+
+    polishesApi.searchPolishesByNameAndFiltersLightweightPaged(
+            SELECT_LIST_AI_LIGHTWEIGHT,
+            shadeNameFilter,
+            brandFilter,
+            collectionFilter,
+            "shade_name.asc, uid.asc",
+            String.valueOf(safeLimit),
+            String.valueOf(safeOffset)
+    ).enqueue(new Callback<List<Polish>>() {
+        @Override
+        public void onResponse(@NonNull Call<List<Polish>> call,
+                               @NonNull Response<List<Polish>> response) {
+            if (!response.isSuccessful() || response.body() == null) {
+                String errorBody = "";
+                try {
+                    if (response.errorBody() != null) {
+                        errorBody = response.errorBody().string();
+                    }
+                } catch (Exception ignored) {
+                }
+                Log.e(BROWSE_DEBUG_TAG, "SEARCH_ERROR code=" + response.code()
+                        + " body=" + errorBody);
+                callback.onError(RetrofitUtil.extractError("Search polishes", response));
+                return;
+            }
+            List<Polish> rows = response.body();
+            callback.onSuccess(rows != null ? rows : new ArrayList<>());
+        }
+
+        @Override
+        public void onFailure(@NonNull Call<List<Polish>> call,
+                              @NonNull Throwable t) {
+            Log.e(BROWSE_DEBUG_TAG, "SEARCH_ERROR onFailure=" + t.getMessage(), t);
+            callback.onError("Search network error: " + t.getMessage());
+        }
+    });
+}
+
+private String buildEqOrInFilter(List<String> values) {
+    if (values == null || values.isEmpty()) return null;
+
+    List<String> clean = new ArrayList<>();
+    Set<String> seen = new HashSet<>();
+    for (String v : values) {
+        if (v == null) continue;
+        String t = v.trim();
+        if (t.isEmpty()) continue;
+        String key = t.toLowerCase(Locale.US);
+        if (seen.add(key)) clean.add(t);
+    }
+
+    if (clean.isEmpty()) return null;
+    if (clean.size() == 1) return "eq." + clean.get(0);
+
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < clean.size(); i++) {
+        if (i > 0) sb.append(",");
+        sb.append(clean.get(i));
+    }
+    return "in.(" + sb + ")";
+}
+}
