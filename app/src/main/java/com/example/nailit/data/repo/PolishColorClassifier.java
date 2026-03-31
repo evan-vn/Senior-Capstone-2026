@@ -13,22 +13,28 @@ public class PolishColorClassifier {
 
     public static final String BLACK = "BLACK";
     public static final String WHITE = "WHITE";
+    public static final String CREAM = "CREAM";
     public static final String GRAY_SILVER = "GRAY_SILVER";
     public static final String GOLD_BRONZE = "GOLD_BRONZE";
+    public static final String YELLOW = "YELLOW";
     public static final String BURGUNDY = "BURGUNDY";
     public static final String RED = "RED";
     public static final String PURPLE = "PURPLE";
+    public static final String LAVENDER = "LAVENDER";
     public static final String PINK = "PINK";
     public static final String NUDE = "NUDE";
     public static final String BLUE = "BLUE";
+    public static final String TEAL = "TEAL";
     public static final String GREEN = "GREEN";
+    public static final String MINT = "MINT";
     public static final String ORANGE_CORAL = "ORANGE_CORAL";
     public static final String BROWN = "BROWN";
     public static final String MULTI_GLITTER = "MULTI_GLITTER";
 
     private final Map<String, List<String>> colorKeywords = buildColorKeywords();
     private final List<String> multiGlitterKeywords = Arrays.asList(
-            "glitter", "confetti", "holographic", "holo", "multicolor", "rainbow", "iridescent"
+            "glitter", "confetti", "holographic", "holo", "multicolor", "multicolour",
+            "rainbow", "iridescent", "sparkle", "shimmer mix"
     );
 
     public String classify(Polish polish) {
@@ -69,6 +75,39 @@ public class PolishColorClassifier {
 
         String optionText = sb.toString();
 
+        if (containsWholeWord(optionText, "cream")
+                || containsWholeWord(optionText, "eggshell")
+                || containsWholeWord(optionText, "vanilla")) {
+            return CREAM;
+        }
+
+        if (containsWholeWord(optionText, "yellow")
+                || containsWholeWord(optionText, "butter")
+                || containsWholeWord(optionText, "lemon")
+                || containsWholeWord(optionText, "mustard")
+                || containsWholeWord(optionText, "sunflower")) {
+            return YELLOW;
+        }
+
+        if (containsWholeWord(optionText, "teal")
+                || containsWholeWord(optionText, "emerald")
+                || containsWholeWord(optionText, "forest green")
+                || containsWholeWord(optionText, "jade")) {
+            return GREEN;
+        }
+
+        if (containsWholeWord(optionText, "mint")
+                || containsWholeWord(optionText, "seafoam")
+                || containsWholeWord(optionText, "pistachio")) {
+            return MINT;
+        }
+
+        if (containsWholeWord(optionText, "lavender")
+                || containsWholeWord(optionText, "lilac")
+                || containsWholeWord(optionText, "periwinkle")) {
+            return LAVENDER;
+        }
+
         if (containsWholeWord(optionText, "burgundy")
                 || containsWholeWord(optionText, "wine")
                 || containsWholeWord(optionText, "oxblood")
@@ -94,7 +133,12 @@ public class PolishColorClassifier {
 
         if (containsWholeWord(optionText, "gold")
                 || containsWholeWord(optionText, "bronze")
-                || containsWholeWord(optionText, "champagne")) {
+                || containsWholeWord(optionText, "champagne")
+                || containsWholeWord(optionText, "yellow")
+                || containsWholeWord(optionText, "mustard")
+                || containsWholeWord(optionText, "lemon")
+                || containsWholeWord(optionText, "butter")
+                || containsWholeWord(optionText, "sunflower")) {
             return GOLD_BRONZE;
         }
 
@@ -112,6 +156,7 @@ public class PolishColorClassifier {
                 || containsWholeWord(optionText, "tangerine")) {
             return ORANGE_CORAL;
         }
+
 
 
         return classifyFromTextAndHex(optionText, null);
@@ -172,18 +217,40 @@ public class PolishColorClassifier {
 
             int lum = (int) (0.2126 * r + 0.7152 * g + 0.0722 * b);
             boolean neutral = Math.abs(r - g) < 18 && Math.abs(g - b) < 18;
+            int diff = Math.max(r, Math.max(g, b)) - Math.min(r, Math.min(g, b));
 
             if (lum < 45) return BLACK;
 
             if (r >= 230 && g >= 230 && b >= 230) return WHITE;
-            if (r >= 220 && g >= 220 && b >= 210) return WHITE;
+            if (r >= 220 && g >= 215 && b >= 205 && diff <= 22) return WHITE;
 
             if (neutral && lum >= 165 && lum < 220) return GRAY_SILVER;
             if (neutral && lum >= 115 && lum < 165) return BROWN;
 
-            // orange
+            // yellow / gold / bronze
+            if (r >= 170 && g >= 150 && b <= 120) {
+                return GOLD_BRONZE;
+            }
+
+            // orange / coral
             if (r >= 170 && g >= 85 && g <= 190 && b <= 125 && r > g && g > b) {
                 return ORANGE_CORAL;
+            }
+
+            // green
+            if (g > r + 20 && g > b + 20) {
+                return GREEN;
+            }
+
+            // blue
+            if (b > r + 30 && b > g + 20) {
+                if (r > 145 && b > 145) return PURPLE;
+                return BLUE;
+            }
+
+            // brown rescue before red/burgundy
+            if (r > g && g > b && lum < 120) {
+                return BROWN;
             }
 
             // red / burgundy
@@ -194,16 +261,6 @@ public class PolishColorClassifier {
                 return RED;
             }
 
-            // blue
-            if (b > r + 30 && b > g + 20) {
-                if (r > 145 && b > 145) return PURPLE;
-                return BLUE;
-            }
-
-            // green
-            if (g > r + 20 && g > b + 20) return GREEN;
-
-            // white / nude / brown fallback
             if (lum > 220 && sApprox(r, g, b) < 0.12f) return WHITE;
             if (r > 185 && g > 165 && b > 145) return NUDE;
             if (neutral && lum >= 95 && lum < 160) return BROWN;
@@ -221,6 +278,7 @@ public class PolishColorClassifier {
         if (max == 0f) return 0f;
         return (max - min) / max;
     }
+
 
     private boolean containsWholeWord(String text, String keyword) {
         String padded = " " + text + " ";
@@ -260,18 +318,26 @@ public class PolishColorClassifier {
     private Map<String, List<String>> buildColorKeywords() {
         Map<String, List<String>> map = new LinkedHashMap<>();
         map.put(BLACK, asList("black", "noir", "ink", "jet", "ebony", "midnight", "obsidian", "raven", "charcoal"));
-        map.put(WHITE, asList("white", "ivory", "snow", "pearl", "milky", "milk"));
-        map.put(GRAY_SILVER, asList("silver", "chrome", "steel", "platinum", "gunmetal", "metallic gray", "metallic grey", "gray", "grey"));
-        map.put(GOLD_BRONZE, asList("gold", "golden", "champagne", "bronze", "gilded", "amber", "rose gold", "antique gold", "warm metallic"));
+        map.put(WHITE, asList("white", "ivory", "snow", "pearl", "milky", "milk", "cream"));
+        map.put(CREAM, asList("cream", "ivory", "off white", "warm white", "buttercream", "eggshell"));
+        map.put(NUDE, asList("nude", "beige", "taupe", "peach nude", "blush", "neutral", "skin tone", "sand", "ivory beige"));map.put(GRAY_SILVER, asList("silver", "chrome", "steel", "platinum", "gunmetal", "metallic gray", "metallic grey", "gray", "grey", "slate"));
+        map.put(GOLD_BRONZE, asList(
+                "gold", "golden", "champagne", "bronze", "gilded", "amber",
+                "rose gold", "antique gold", "warm metallic",
+                "yellow", "mustard", "lemon", "butter", "sunflower"
+        ));
+        map.put(YELLOW, asList("yellow", "butter", "buttery", "lemon", "mustard", "sunflower", "canary", "daffodil"));
         map.put(BURGUNDY, asList("burgundy", "wine", "oxblood", "maroon", "deep burgundy"));
-        map.put(RED, asList("red", "wine", "burgundy", "cherry", "crimson", "ruby", "scarlet", "maroon"));
-        map.put(PURPLE, asList("purple", "plum", "violet", "berry", "mauve", "orchid", "eggplant", "lavender"));
+        map.put(RED, asList("red", "cherry", "crimson", "ruby", "scarlet", "tomato", "apple red"));
+        map.put(PURPLE, asList("purple", "plum", "violet", "berry", "mauve", "orchid", "eggplant"));
+        map.put(LAVENDER, asList("lavender", "lilac", "periwinkle", "soft violet", "pastel purple"));
         map.put(PINK, asList("pink", "light pink", "soft pink", "baby pink", "blush pink", "rose", "bubblegum", "fuchsia", "magenta"));
-        map.put(NUDE, asList("nude", "beige", "taupe", "peach nude", "blush", "neutral", "skin tone"));
-        map.put(BLUE, asList("blue", "teal", "navy", "cobalt", "azure"));
-        map.put(GREEN, asList("green", "emerald", "olive", "mint", "sage"));
-        map.put(ORANGE_CORAL, asList("orange", "coral", "apricot", "tangerine", "peach"));
-        map.put(BROWN, asList("brown", "chocolate", "mocha", "caramel", "cocoa"));
+        map.put(BLUE, asList("blue", "navy", "cobalt", "azure", "royal blue", "sky blue"));
+        map.put(TEAL, asList("teal", "aqua", "cyan", "turquoise", "ocean", "lagoon"));
+        map.put(GREEN, asList("green", "emerald", "olive", "mint", "sage", "teal", "jade", "forest green"));
+        map.put(MINT, asList("mint", "seafoam", "pistachio", "pastel green", "light mint"));
+        map.put(ORANGE_CORAL, asList("orange", "coral", "apricot", "tangerine", "peach", "melon", "persimmon"));
+        map.put(BROWN, asList("brown", "chocolate", "mocha", "caramel", "cocoa", "coffee", "espresso", "tan"));
         return map;
     }
 
