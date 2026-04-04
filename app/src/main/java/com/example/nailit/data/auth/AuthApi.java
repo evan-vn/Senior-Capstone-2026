@@ -25,4 +25,6 @@ public interface AuthApi {
     //Better Auth sign-up (email + password + optional name)
     @POST("sign-up/email")
     Call<ResponseBody> signUpEmail(@Body Map<String, String> body);
+    @POST("change-password")
+    Call<ResponseBody> changePassword(@Body Map<String, String> body);
 }

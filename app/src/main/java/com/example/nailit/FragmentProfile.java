@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.nailit.data.network.TokenStore;
 import com.example.nailit.data.repo.AuthRepository;
+import com.example.nailit.ui.ChangePasswordActivity;
 import com.example.nailit.ui.FavoriteDesignsActivity;
 import com.example.nailit.ui.FavoritePolishesActivity;
 import com.example.nailit.ui.LoginActivity;
@@ -32,10 +33,13 @@ public class FragmentProfile extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
         profileName = view.findViewById(R.id.profileName);
         profileEmail = view.findViewById(R.id.profileEmail);
+
         View logoutBtn = view.findViewById(R.id.logout);
         View savedColors = view.findViewById(R.id.savedColors);
         View savedDesigns = view.findViewById(R.id.savedDesigns);
         View savedSalon = view.findViewById(R.id.savedSalon);
+        View changePassword = view.findViewById(R.id.changePassword);
+
         TokenStore tokenStore = new TokenStore(requireContext());
         authRepository = new AuthRepository(tokenStore);
 
@@ -58,6 +62,10 @@ public class FragmentProfile extends Fragment {
             intent.putExtra(SavedSalonsActivity.EXTRA_USER_ID, userId);
             startActivity(intent);
         });
+
+        changePassword.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), ChangePasswordActivity.class)));
+
 
         loadProfile();
         return view;

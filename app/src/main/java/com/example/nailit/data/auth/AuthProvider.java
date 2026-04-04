@@ -15,4 +15,5 @@ public interface AuthProvider {
 
     //Sign up with email, password, optional name; on success session/JWT is stored
     void signUp(String email, String password, String name, AuthCallback callback);
+    void changePassword(String currentPassword, String newPassword, AuthCallback callback);
 }

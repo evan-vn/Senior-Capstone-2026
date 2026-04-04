@@ -18,6 +18,9 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import com.example.nailit.data.config.NeonConfig;
+import okhttp3.OkHttpClient;
 
 //Better Auth password flow: POST /sign-in/email then GET /get-session
 public class PasswordGrantAuthProvider implements AuthProvider {
@@ -25,11 +28,29 @@ public class PasswordGrantAuthProvider implements AuthProvider {
     private static final String TAG = "PasswordGrantAuth";
 
     private final AuthApi authApi;
+    private final AuthApi authedAuthApi; //for change password
     private final TokenStore tokenStore;
 
     public PasswordGrantAuthProvider(AuthApi authApi, TokenStore tokenStore) {
         this.authApi = authApi;
         this.tokenStore = tokenStore;
+        //Update password part
+        Retrofit authed = new Retrofit.Builder()
+                .baseUrl(NeonConfig.AUTH_BASE_URL)
+                .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
+                .client(new okhttp3.OkHttpClient.Builder()
+                        .addInterceptor(chain -> {
+                            String token = tokenStore.getAccessToken();
+                            okhttp3.Request request = chain.request().newBuilder()
+                                    .addHeader("Authorization", "Bearer " + token)
+                                    .build();
+                            return chain.proceed(request);
+                        })
+                        .build())
+                .build();
+
+        this.authedAuthApi = authed.create(AuthApi.class);
+
     }
 
     @Override
@@ -168,6 +189,46 @@ public class PasswordGrantAuthProvider implements AuthProvider {
         });
     }
 
+    @Override
+    public void changePassword(String currentPassword, String newPassword, AuthCallback callback) {
+        Log.d("CP", "change password fc");
+        if (currentPassword == null || currentPassword.isEmpty()) {
+            callback.onError("Current password required");
+            return;
+        }
+        if (newPassword == null || newPassword.isEmpty()) {
+            callback.onError("New password required");
+            return;
+        }
+
+        Map<String, String> body = new HashMap<>();
+        body.put("currentpassword", currentPassword);
+        body.put("newpassword", newPassword);
+
+        authedAuthApi.changePassword(body).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.d("CP", "HTTP: " + response.code());
+
+                if (!response.isSuccessful()) {
+                    try {
+                        Log.e("CP", "Error: " + response.errorBody().string());
+                    } catch (Exception ignored) {
+                    }
+
+                    callback.onError("Failed: " + response.code());
+                    return;
+                }
+
+                callback.onSuccess();
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                callback.onError(t.getMessage());
+            }
+        });
+    }
 
 
 }

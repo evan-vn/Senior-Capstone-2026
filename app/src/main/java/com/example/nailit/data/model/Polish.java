@@ -42,6 +42,9 @@ public class Polish {
     @SerializedName("occasion_labels")
     private List<String> occasionLabels;
 
+    @SerializedName(("image_data"))
+    private String image;
+
     public String getUid() { return uid; }
     public String getBrand() { return brand; }
     public String getCollection() { return collection; }
@@ -78,6 +81,29 @@ public class Polish {
         }
         return data;
     }
+    public byte[] getImageBytes() {
+        if (image == null || image.length() < 4) {
+            return null;
+        }
+        String hex = image;
+        if (hex.startsWith("\\\\x") || hex.startsWith("\\\\X")) {
+            hex = hex.substring(2);
+        }
+        int len = hex.length();
+        if (len % 2 != 0) {
+            return null;
+        }
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            int hi = Character.digit(hex.charAt(i), 16);
+            int lo = Character.digit(hex.charAt(i + 1), 16);
+            if (hi < 0 || lo < 0) {
+                return null;
+            }
+            data[i / 2] = (byte) ((hi << 4) + lo);
+        }
+        return data;
+    }
 
     //Returns the first swatch image URL, or null if none available
     public String getSwatchUrl() {
@@ -89,6 +115,9 @@ public class Polish {
     public String getThumbnailHex(){
         return thumbnailHex;
     }
+    public String getImage(){
+        return image;
+    }
 
     public static Polish create(String uid, String shadeName, String brand,
                                 String hex) {
@@ -97,6 +126,7 @@ public class Polish {
         p.shadeName = shadeName;
         p.brand = brand;
         p.hex = hex;
+
         return p;
     }
 }

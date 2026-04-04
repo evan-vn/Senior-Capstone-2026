@@ -1,20 +1,113 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Camera Preview -->
     <androidx.camera.view.PreviewView
         android:id="@+id/previewView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="invisible"/>
 
-    <!-- Overlay for drawing nails -->
     <ImageView
         android:id="@+id/resultImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="visible"/>
+
+    <View
+        android:id="@+id/flashOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFFFF"
+        android:alpha="0"
+        android:visibility="gone"/>
+
+    <!-- Shape strip — right side, vertically centered -->
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="10dp"
+        android:scrollbars="none"
+        android:fadeScrollbars="true">
+
+        <LinearLayout
+            android:id="@+id/shapeStrip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"/>
+
+    </ScrollView>
+
+    <!-- Bottom bar: shutter + color strip -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:background="#CC000000"
+        android:paddingTop="10dp"
+        android:paddingBottom="20dp">
+
+        <!-- Shutter row: gallery button right of shutter -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <!-- Shutter centered -->
+            <ImageButton
+                android:id="@+id/shutterBtn"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_centerInParent="true"
+                android:background="@drawable/shutter_button"
+                android:contentDescription="Take snapshot"
+                android:scaleType="centerInside"/>
+
+            <!-- Gallery button to the right -->
+            <LinearLayout
+                android:id="@+id/galleryBtn"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_centerVertical="true"
+                android:layout_toEndOf="@id/shutterBtn"
+                android:layout_marginStart="24dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <!-- Thumbnail frame -->
+                <ImageView
+                    android:id="@+id/galleryThumb"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/gallery_thumb_bg"/>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <!-- Color strip -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/colorStrip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"/>
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
 
 </FrameLayout>
