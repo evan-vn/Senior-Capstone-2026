@@ -67,6 +67,8 @@ public class FragmentCollections extends Fragment {
     private RecyclerView browseResultsRecycler;
     private Button browseLoadMoreButton;
     private ProgressBar browseLoadMoreProgress;
+    private Button seasonLoadMoreButton;
+    private ProgressBar seasonLoadMoreProgress;
     private View seasonTabsGrid;
     private View stylingTipsCard;
 
@@ -84,6 +86,11 @@ public class FragmentCollections extends Fragment {
 
     private static final String SEARCH_LOG_TAG = "SEARCH_FETCH";
     private static final int SEARCH_PAGE_SIZE = 20;
+    private static final int SEASON_PAGE_SIZE = 20;
+
+    private final List<Polish> seasonOrTrendingResults = new ArrayList<>();
+    private boolean seasonTrendingHasMore = true;
+    private boolean seasonTrendingLoading = false;
     private int currentPage = 0;
     private boolean isLoading = false;
     private boolean hasMore = true;
@@ -151,6 +158,8 @@ public class FragmentCollections extends Fragment {
         browseResultsRecycler = view.findViewById(R.id.browseResultsRecycler);
         browseLoadMoreButton = view.findViewById(R.id.browseLoadMoreButton);
         browseLoadMoreProgress = view.findViewById(R.id.browseLoadMoreProgress);
+        seasonLoadMoreButton = view.findViewById(R.id.seasonLoadMoreButton);
+        seasonLoadMoreProgress = view.findViewById(R.id.seasonLoadMoreProgress);
         seasonTabsGrid = view.findViewById(R.id.seasonTabsGrid);
         stylingTipsCard = view.findViewById(R.id.stylingTipsCard);
 
@@ -169,6 +178,7 @@ public class FragmentCollections extends Fragment {
         });
 
         browseLoadMoreButton.setOnClickListener(v -> loadNextPage());
+        seasonLoadMoreButton.setOnClickListener(v -> fetchSeasonTrending(true));
 
         TokenStore tokenStore = new TokenStore(requireContext());
         repo = new PolishesRepository(tokenStore);
@@ -219,6 +229,7 @@ public class FragmentCollections extends Fragment {
             hideBrowseResultsInline();
         }
         updateLoadMoreUi();
+        updateSeasonLoadMoreUi();
     }
 
     private void hideBrowseResultsInline() {
@@ -238,6 +249,20 @@ public class FragmentCollections extends Fragment {
         browseLoadMoreButton.setVisibility(canShow ? View.VISIBLE : View.GONE);
         browseLoadMoreButton.setEnabled(!isLoading);
         browseLoadMoreProgress.setVisibility(active && isLoading ? View.VISIBLE : View.GONE);
+    }
+
+    private void updateSeasonLoadMoreUi() {
+        if (isSearchActive()) {
+            seasonLoadMoreButton.setVisibility(View.GONE);
+            seasonLoadMoreProgress.setVisibility(View.GONE);
+            return;
+        }
+        boolean hasRows = !seasonOrTrendingResults.isEmpty();
+        boolean showButton = hasRows && seasonTrendingHasMore && !seasonTrendingLoading;
+        boolean showAppendProgress = seasonTrendingLoading && hasRows;
+        seasonLoadMoreButton.setVisibility(showButton ? View.VISIBLE : View.GONE);
+        seasonLoadMoreButton.setEnabled(!seasonTrendingLoading);
+        seasonLoadMoreProgress.setVisibility(showAppendProgress ? View.VISIBLE : View.GONE);
     }
 
     private void setupBrowseUi(@Nullable Bundle savedInstanceState) {
@@ -670,30 +695,53 @@ public class FragmentCollections extends Fragment {
         seasonNameLabel.setText(TAB_NAMES[index]);
         describeSeasonLabel.setText(TAB_DESCRIPTIONS[index]);
 
-        showLoading();
-        if (index == IDX_TRENDING) {
-            repo.getTrendingPolishes(createCallback());
-        } else {
-            repo.getPolishesBySeason(SEASON_TAGS[index], createCallback());
-        }
+        fetchSeasonTrending(false);
     }
 
-    private PolishesRepository.PolishesCallback createCallback() {
-        return new PolishesRepository.PolishesCallback() {
+    private void fetchSeasonTrending(boolean append) {
+        if (seasonTrendingLoading) return;
+        if (append && !seasonTrendingHasMore) return;
+
+        seasonTrendingLoading = true;
+        if (!append) {
+            seasonOrTrendingResults.clear();
+            seasonTrendingHasMore = true;
+            showLoading();
+        } else {
+            seasonLoadMoreProgress.setVisibility(View.VISIBLE);
+        }
+        updateSeasonLoadMoreUi();
+
+        final int offset = append ? seasonOrTrendingResults.size() : 0;
+
+        PolishesRepository.PolishesCallback callback = new PolishesRepository.PolishesCallback() {
             @Override
             public void onSuccess(List<Polish> polishes) {
                 if (!isAdded()) return;
                 requireActivity().runOnUiThread(() -> {
+                    seasonTrendingLoading = false;
                     trendingProgress.setVisibility(View.GONE);
-                    if (polishes == null || polishes.isEmpty()) {
+                    seasonLoadMoreProgress.setVisibility(View.GONE);
+
+                    int count = polishes != null ? polishes.size() : 0;
+                    if (!append && count == 0) {
                         trendingError.setText("No polishes found");
                         trendingError.setVisibility(View.VISIBLE);
                         adapter.setItems(new ArrayList<>());
+                        seasonOrTrendingResults.clear();
+                        seasonTrendingHasMore = false;
+                        updateSeasonLoadMoreUi();
                         return;
                     }
+
                     trendingError.setVisibility(View.GONE);
-                    adapter.setItems(polishes);
+                    if (polishes != null) {
+                        seasonOrTrendingResults.addAll(polishes);
+                    }
+                    seasonTrendingHasMore = count >= SEASON_PAGE_SIZE;
+                    adapter.setItems(new ArrayList<>(seasonOrTrendingResults));
                     loadFavoritesIntoAdapters();
+                    updateSeasonLoadMoreUi();
                 });
             }
 
@@ -701,13 +749,25 @@ public class FragmentCollections extends Fragment {
             public void onError(String message) {
                 if (!isAdded()) return;
                 requireActivity().runOnUiThread(() -> {
+                    seasonTrendingLoading = false;
                     trendingProgress.setVisibility(View.GONE);
+                    seasonLoadMoreProgress.setVisibility(View.GONE);
                     trendingError.setText(message != null ? message : "Failed to load");
                     trendingError.setVisibility(View.VISIBLE);
-                    adapter.setItems(new ArrayList<>());
+                    if (!append) {
+                        adapter.setItems(new ArrayList<>());
+                        seasonOrTrendingResults.clear();
+                    }
+                    updateSeasonLoadMoreUi();
                 });
             }
         };
+
+        if (selectedIndex == IDX_TRENDING) {
+            repo.getTrendingPolishes(SEASON_PAGE_SIZE, offset, callback);
+        } else {
+            repo.getPolishesBySeason(SEASON_TAGS[selectedIndex], SEASON_PAGE_SIZE, offset, callback);
+        }
     }
 
     private void showLoading() {

@@ -152,52 +152,6 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-
-        <!-- Quick Prompts Section -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="3dp"
-            android:layout_marginBottom="12dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Quick Prompts"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center">
-
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Suggest nail colors"
-                        android:textSize="10sp"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Match my outfit"
-                        android:textSize="10sp"
-                        android:layout_marginStart="10dp"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-                </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
         <!-- Tips Section -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"

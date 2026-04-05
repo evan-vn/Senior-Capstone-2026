@@ -161,33 +161,6 @@ public class AiRepository {
         });
     }
 
-    // Temporary debug helper to isolate Neon candidate fetch from AI scoring.
-    public void debugFetchAiCandidates() {
-        polishesRepository.debugControlFetch(new PolishesRepository.PolishesCallback() {
-            @Override
-            public void onSuccess(List<com.example.nailit.data.model.Polish> polishes) {
-                Log.d(TAG, "debugControlFetch success count=" + (polishes != null ? polishes.size() : 0));
-            }
-
-            @Override
-            public void onError(String message) {
-                Log.e(TAG, "debugControlFetch error=" + message);
-            }
-        });
-
-        polishesRepository.getAllPolishesForAiMatching(new PolishesRepository.PolishesCallback() {
-            @Override
-            public void onSuccess(List<com.example.nailit.data.model.Polish> polishes) {
-                Log.d(TAG, "getAllPolishesForAiMatching success count=" + (polishes != null ? polishes.size() : 0));
-            }
-
-            @Override
-            public void onError(String message) {
-                Log.e(TAG, "getAllPolishesForAiMatching error=" + message);
-            }
-        });
-    }
-
     private AiSuggestionPayload parsePayload(String rawJson) {
         try {
             String cleaned = rawJson;

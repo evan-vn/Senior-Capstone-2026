@@ -41,8 +41,6 @@ public class PolishesRepository {
             "uid,brand,collection,shade_name,shade_code,description,hex,swatch_images,thumbnail_data";
     private static final String SELECT_LIST_TRENDING =
             "uid,brand,collection,shade_name,shade_code,description,hex,favorite_count,swatch_images";
-    private static final String SELECT_LIST_AI =
-            "uid,brand,collection,shade_name,shade_code,description,hex,swatch_images,thumbnail_data,season_labels,occasion_labels";
     private static final String SELECT_LIST_AI_LIGHTWEIGHT =
             "uid,brand,collection,shade_name,shade_code,description,hex,season_labels,occasion_labels";
     private static final int AI_PAGE_SIZE = 100;
@@ -73,8 +71,12 @@ public class PolishesRepository {
         this.colorClassifier = new PolishColorClassifier();
     }
 
-    public void getTrendingPolishes(PolishesCallback callback) {
-        polishesApi.getTrendingPolishes(SELECT_LIST_TRENDING, "favorite_count.desc", "30")
+    public void getTrendingPolishes(int limit, int offset, PolishesCallback callback) {
+        polishesApi.getTrendingPolishes(
+                        SELECT_LIST_TRENDING,
+                        "favorite_count.desc",
+                        String.valueOf(limit),
+                        String.valueOf(offset))
                 .enqueue(new Callback<List<Polish>>() {
                     @Override
                     public void onResponse(@NonNull Call<List<Polish>> call,
@@ -214,9 +216,13 @@ public class PolishesRepository {
         });
     }
 
-    public void getPolishesBySeason(String seasonTag, PolishesCallback callback) {
+    public void getPolishesBySeason(String seasonTag, int limit, int offset, PolishesCallback callback) {
         String filter = "cs.[\"" + seasonTag + "\"]";
-        polishesApi.getPolishesBySeason(SELECT_LIST_BASE, filter, "30")
+        polishesApi.getPolishesBySeason(
+                        SELECT_LIST_BASE,
+                        filter,
+                        String.valueOf(limit),
+                        String.valueOf(offset))
                 .enqueue(new Callback<List<Polish>>() {
                     @Override
                     public void onResponse(@NonNull Call<List<Polish>> call,
@@ -235,114 +241,9 @@ public class PolishesRepository {
                 });
     }
 
-    public void getAllPolishesForAiMatching(PolishesCallback callback) {
-        Log.d(FETCH_DEBUG_TAG, "ENTER getAllPolishesForAiMatching");
-        fetchAiDataset(SELECT_LIST_AI, callback, true);
-    }
-
     public void getAllPolishesForAiMatchingLightweight(PolishesCallback callback) {
         Log.d(FETCH_DEBUG_TAG, "ENTER getAllPolishesForAiMatchingLightweight");
         fetchAiDatasetLightweightPaged(0, 1, new ArrayList<>(), callback);
-    }
-
-    //Temporary debug control fetch to isolate Neon fetch from AI scoring pipeline.
-    public void debugControlFetch(PolishesCallback callback) {
-        String token = tokenStore.getAccessToken();
-        boolean hasToken = token != null && !token.trim().isEmpty();
-        Log.d(FETCH_DEBUG_TAG, "ENTER debugControlFetch");
-        Log.d(FETCH_DEBUG_TAG, "request=/polishes");
-        Log.d(FETCH_DEBUG_TAG, "limit=20");
-        Log.d(FETCH_DEBUG_TAG, "select=<none>");
-        Log.d(FETCH_DEBUG_TAG, "hasToken=" + hasToken);
-        polishesApi.getPolishesSimple("20").enqueue(new Callback<List<Polish>>() {
-            @Override
-            public void onResponse(@NonNull Call<List<Polish>> call,
-                                   @NonNull Response<List<Polish>> response) {
-                if (!response.isSuccessful()) {
-                    String errorBody = "";
-                    try {
-                        if (response.errorBody() != null) {
-                            errorBody = response.errorBody().string();
-                        }
-                    } catch (Exception ignored) {
-                    }
-                    Log.e(FETCH_DEBUG_TAG, "control failure code=" + response.code()
-                            + " responseNull=" + (response == null)
-                            + " bodyNull=" + (response.body() == null)
-                            + " errorBody=" + errorBody);
-                    callback.onError("Control fetch failed: HTTP " + response.code());
-                    return;
-                }
-
-                List<Polish> rows = response.body() != null ? response.body() : new ArrayList<>();
-                Log.d(FETCH_DEBUG_TAG, "control success code=" + response.code() + " count=" + rows.size());
-                Log.d(FETCH_DEBUG_TAG, "control firstNames=" + firstNames(rows, 5));
-                callback.onSuccess(rows);
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<List<Polish>> call, @NonNull Throwable t) {
-                Log.e(FETCH_DEBUG_TAG, "control onFailure message=" + t.getMessage(), t);
-                callback.onError("Control fetch onFailure: " + t.getMessage());
-            }
-        });
-    }
-
-    private void fetchAiDataset(String selectList,
-                                PolishesCallback callback,
-                                boolean allowBaseSelectFallback) {
-        String token = tokenStore.getAccessToken();
-        boolean hasToken = token != null && !token.trim().isEmpty();
-        Log.d(FETCH_DEBUG_TAG, "request=/polishes");
-        Log.d(FETCH_DEBUG_TAG, "limit=500");
-        Log.d(FETCH_DEBUG_TAG, "select=" + selectList);
-        Log.d(FETCH_DEBUG_TAG, "hasToken=" + hasToken);
-        polishesApi.getPolishesForAi(selectList, "500")
-                .enqueue(new Callback<List<Polish>>() {
-                    @Override
-                    public void onResponse(@NonNull Call<List<Polish>> call,
-                                           @NonNull Response<List<Polish>> response) {
-                        if (!response.isSuccessful() || response.body() == null) {
-                            String error = RetrofitUtil.extractError("AI polish lookup", response);
-                            String errorBody = "";
-                            try {
-                                if (response.errorBody() != null) {
-                                    errorBody = response.errorBody().string();
-                                }
-                            } catch (Exception ignored) {
-                            }
-                            Log.e(FETCH_DEBUG_TAG, "failure code=" + response.code()
-                                    + " responseNull=" + (response == null)
-                                    + " bodyNull=" + (response.body() == null)
-                                    + " allowBaseSelectFallback=" + allowBaseSelectFallback
-                                    + " errorBody=" + errorBody);
-                            if (allowBaseSelectFallback && response.code() == 400) {
-                                Log.w(FETCH_DEBUG_TAG, "Retrying AI fetch with SELECT_LIST_BASE after HTTP 400");
-                                fetchAiDataset(SELECT_LIST_BASE, callback, false);
-                                return;
-                            }
-                            callback.onError(error);
-                            return;
-                        }
-                        List<Polish> rows = response.body();
-                        Log.d(FETCH_DEBUG_TAG, "success code=" + response.code() + " count=" + rows.size());
-                        Log.d(FETCH_DEBUG_TAG, "firstNames=" + firstNames(rows, 5));
-                        logCandidateFetch("AI_FULL_DATASET", response.body());
-                        callback.onSuccess(response.body());
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<List<Polish>> call, @NonNull Throwable t) {
-                        Log.e(FETCH_DEBUG_TAG, "onFailure allowBaseSelectFallback=" + allowBaseSelectFallback
-                                + " message=" + t.getMessage(), t);
-                        if (allowBaseSelectFallback) {
-                            Log.w(FETCH_DEBUG_TAG, "Retrying AI fetch with SELECT_LIST_BASE after onFailure");
-                            fetchAiDataset(SELECT_LIST_BASE, callback, false);
-                            return;
-                        }
-                        callback.onError("AI polish lookup failed: " + t.getMessage());
-                    }
-                });
     }
 
     private void fetchAiDatasetLightweightPaged(int offset,

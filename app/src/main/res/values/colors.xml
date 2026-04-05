@@ -5,4 +5,8 @@
     <color name="linght_pink">#FCF3FC</color>
     <color name="light_purple">#F4DDFF</color>
     <color name="light_gray">#ebe6e6</color>
+    <color name="brand_pink">#FFEA4D9E</color>
+    <color name="header_subtitle">#7A5F7A</color>
+    <color name="header_brand_gradient_start">#FF5FA2</color>
+    <color name="header_brand_gradient_end">#A259FF</color>
 </resources>

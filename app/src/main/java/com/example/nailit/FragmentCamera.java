@@ -568,7 +568,6 @@ public class FragmentCamera extends Fragment {
         latestBitmap = bitmap;
         MPImage mpImage = new BitmapImageBuilder(bitmap).build();
         handLandmarker.detectAsync(mpImage, System.currentTimeMillis());
-        image.close();
     }
 
     private Bitmap imageProxyToBitmap(ImageProxy image) {
