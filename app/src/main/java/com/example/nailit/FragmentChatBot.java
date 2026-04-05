@@ -49,7 +49,7 @@ public class FragmentChatBot extends Fragment {
 
     private OutfitColorExtractor.ColorSummary selectedColorSummary;
     private ActivityResultLauncher<PickVisualMediaRequest> pickImageLauncher;
-
+     private static final List<ChatUiItem> chatHistory = new ArrayList<>();
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -62,6 +62,8 @@ public class FragmentChatBot extends Fragment {
         chatInput = view.findViewById(R.id.chatInput);
         sendBtn = view.findViewById(R.id.sendBtn);
         uploadButton = view.findViewById(R.id.uploadButton);
+        restoreChatHistory();
+        restoreSelectedColorSummaryFromHistory();
 
         aiRepository = new AiRepository(requireContext());
 
@@ -77,7 +79,8 @@ public class FragmentChatBot extends Fragment {
 
                     try {
                         selectedColorSummary = OutfitColorExtractor.extract(requireContext(), uri);
-                        addImageBubble(uri);
+                        addImageBubble(uri, true);
+
                         List<String> previewFamilies = firstColorOnly(selectedColorSummary.getTopFamilies());
                         String colorPreview = prettyColors(previewFamilies);
 
@@ -108,6 +111,7 @@ public class FragmentChatBot extends Fragment {
 
         return view;
     }
+
 
     private void handleSend() {
         String userText = chatInput.getText().toString().trim();
@@ -236,11 +240,26 @@ public class FragmentChatBot extends Fragment {
     }
 
     private void addChatBubble(String text, boolean isUser) {
+        addChatBubble(text, isUser, true);
+    }
+
+    private void addChatBubble(String text, boolean isUser, boolean saveToHistory) {
+        if (saveToHistory) {
+            chatHistory.add(ChatUiItem.text(text, isUser));
+        }
         chatContainer.addView(buildBubble(text, isUser));
         scrollToBottom();
     }
 
     private void addGroupedRecommendations(List<AiMatchedOption> options) {
+        addGroupedRecommendations(options, true);
+    }
+
+    private void addGroupedRecommendations(List<AiMatchedOption> options, boolean saveToHistory) {
+        if (saveToHistory) {
+            chatHistory.add(ChatUiItem.options(options));
+        }
+
         if (options == null || options.isEmpty()) {
             TextView empty = buildBubble("No matching polishes found.", false);
             empty.setAlpha(0.7f);
@@ -337,6 +356,16 @@ public class FragmentChatBot extends Fragment {
     }
 
     private void addImageBubble(Uri imageUri) {
+        addImageBubble(imageUri, true);
+    }
+
+    private void addImageBubble(Uri imageUri, boolean saveToHistory) {
+        if (imageUri == null) return;
+
+        if (saveToHistory) {
+            chatHistory.add(ChatUiItem.image(imageUri));
+        }
+
         androidx.cardview.widget.CardView card = new androidx.cardview.widget.CardView(requireContext());
         card.setRadius(dp(14));
         card.setCardElevation(dp(2));
@@ -360,5 +389,41 @@ public class FragmentChatBot extends Fragment {
         card.addView(imageView);
         chatContainer.addView(card);
         scrollToBottom();
+    }
+
+    private void restoreChatHistory() {
+        chatContainer.removeAllViews();
+
+        for (ChatUiItem item : chatHistory) {
+            if (item == null) continue;
+
+            if (item.type == ChatUiItem.TYPE_TEXT) {
+                addChatBubble(item.text, item.isUser, false);
+            } else if (item.type == ChatUiItem.TYPE_IMAGE) {
+                if (item.imageUriString != null) {
+                    addImageBubble(Uri.parse(item.imageUriString), false);
+                }
+            } else if (item.type == ChatUiItem.TYPE_OPTIONS) {
+                addGroupedRecommendations(item.options, false);
+            }
+        }
+
+        scrollToBottom();
+    }
+
+    private void restoreSelectedColorSummaryFromHistory() {
+        for (int i = chatHistory.size() - 1; i >= 0; i--) {
+            ChatUiItem item = chatHistory.get(i);
+            if (item != null && item.type == ChatUiItem.TYPE_IMAGE && item.imageUriString != null) {
+                try {
+                    selectedColorSummary = OutfitColorExtractor.extract(
+                            requireContext(),
+                            Uri.parse(item.imageUriString)
+                    );
+                    return;
+                } catch (Exception ignored) {
+                }
+            }
+        }
     }
 }
