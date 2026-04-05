@@ -90,7 +90,6 @@ public class AuthRepository {
     }
     public void changePassword(String currentPassword, String newPassword,
                                AuthProvider.AuthCallback callback) {
-        Log.d("CP","change password Repo");
         provider.changePassword(currentPassword, newPassword, callback);
     }
 }

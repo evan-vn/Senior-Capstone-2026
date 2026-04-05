@@ -2,13 +2,13 @@ package com.example.nailit.data.network;
 
 import androidx.annotation.NonNull;
 
-import com.example.nailit.BuildConfig;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.example.nailit.BuildConfig;
 
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
@@ -82,5 +82,30 @@ public final class PlainClient {
             }
         }
         return instance;
+    }
+
+    //Same CookieJar + Origin as sign-in/get-session, plus Bearer JWT for Better Auth endpoints that accept it.
+    public static OkHttpClient createNeonAuthHttpClientWithBearer(TokenStore tokenStore) {
+        OkHttpClient.Builder httpBuilder = new OkHttpClient.Builder()
+                .cookieJar(COOKIE_JAR)
+                .addInterceptor(ORIGIN_INTERCEPTOR)
+                .addInterceptor(chain -> {
+                    String token = tokenStore.getAccessToken();
+                    okhttp3.Request request = chain.request();
+                    if (token != null && !token.isEmpty()) {
+                        request = request.newBuilder()
+                                .header("Authorization", "Bearer " + token)
+                                .build();
+                    }
+                    return chain.proceed(request);
+                });
+
+        if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+            httpBuilder.addInterceptor(logging);
+        }
+
+        return httpBuilder.build();
     }
 }

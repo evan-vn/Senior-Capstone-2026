@@ -43,9 +43,20 @@ public class ChangePasswordActivity extends AppCompatActivity {
         btnChangePassword.setOnClickListener(v -> handleChangePassword());
         btnBack.setOnClickListener(v -> finish());
         tvCancel.setOnClickListener(v -> finish());
+
+        if (!authRepository.hasToken()) {
+            Toast.makeText(this, "Please sign in to change your password", Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     private void handleChangePassword() {
+        if (!authRepository.hasToken()) {
+            Toast.makeText(this, "Please sign in to change your password", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
         String currentPassword = etCurrentPassword.getText().toString().trim();
         if (TextUtils.isEmpty(currentPassword)) {
             Toast.makeText(this, "Current password required", Toast.LENGTH_SHORT).show();
@@ -58,8 +69,14 @@ public class ChangePasswordActivity extends AppCompatActivity {
             return;
         }
 
-        if (newPassword.length() < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+        String confirm = etConfirmNewPassword.getText().toString();
+        if (TextUtils.isEmpty(confirm)) {
+            Toast.makeText(this, "Confirm password required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (newPassword.length() < 8) {
+            Toast.makeText(this, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -68,7 +85,6 @@ public class ChangePasswordActivity extends AppCompatActivity {
             return;
         }
 
-        String confirm = etConfirmNewPassword.getText().toString();
         if (!newPassword.equals(confirm)) {
             Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
             return;

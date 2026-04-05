@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import com.example.nailit.data.api.UsersApi;
 import com.example.nailit.data.model.UserIdRow;
 import com.example.nailit.data.network.ApiClient;
+import com.example.nailit.data.network.PlainClient;
 import com.example.nailit.data.network.RetrofitUtil;
 import com.example.nailit.data.network.TokenStore;
 
@@ -20,7 +21,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import com.example.nailit.data.config.NeonConfig;
-import okhttp3.OkHttpClient;
 
 //Better Auth password flow: POST /sign-in/email then GET /get-session
 public class PasswordGrantAuthProvider implements AuthProvider {
@@ -34,19 +34,11 @@ public class PasswordGrantAuthProvider implements AuthProvider {
     public PasswordGrantAuthProvider(AuthApi authApi, TokenStore tokenStore) {
         this.authApi = authApi;
         this.tokenStore = tokenStore;
-        //Update password part
+
         Retrofit authed = new Retrofit.Builder()
                 .baseUrl(NeonConfig.AUTH_BASE_URL)
                 .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
-                .client(new okhttp3.OkHttpClient.Builder()
-                        .addInterceptor(chain -> {
-                            String token = tokenStore.getAccessToken();
-                            okhttp3.Request request = chain.request().newBuilder()
-                                    .addHeader("Authorization", "Bearer " + token)
-                                    .build();
-                            return chain.proceed(request);
-                        })
-                        .build())
+                .client(PlainClient.createNeonAuthHttpClientWithBearer(tokenStore))
                 .build();
 
         this.authedAuthApi = authed.create(AuthApi.class);
@@ -191,7 +183,11 @@ public class PasswordGrantAuthProvider implements AuthProvider {
 
     @Override
     public void changePassword(String currentPassword, String newPassword, AuthCallback callback) {
-        Log.d("CP", "change password fc");
+        String token = tokenStore.getAccessToken();
+        if (token == null || token.isEmpty()) {
+            callback.onError("Not signed in. Please log in again.");
+            return;
+        }
         if (currentPassword == null || currentPassword.isEmpty()) {
             callback.onError("Current password required");
             return;
@@ -202,30 +198,23 @@ public class PasswordGrantAuthProvider implements AuthProvider {
         }
 
         Map<String, String> body = new HashMap<>();
-        body.put("currentpassword", currentPassword);
-        body.put("newpassword", newPassword);
+        body.put("currentPassword", currentPassword);
+        body.put("newPassword", newPassword);
 
         authedAuthApi.changePassword(body).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.d("CP", "HTTP: " + response.code());
-
                 if (!response.isSuccessful()) {
-                    try {
-                        Log.e("CP", "Error: " + response.errorBody().string());
-                    } catch (Exception ignored) {
-                    }
-
-                    callback.onError("Failed: " + response.code());
+                    callback.onError(RetrofitUtil.extractError("Change password", response));
                     return;
                 }
-
                 callback.onSuccess();
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                callback.onError(t.getMessage());
+                String msg = t.getMessage();
+                callback.onError(msg != null ? msg : "Network error");
             }
         });
     }
