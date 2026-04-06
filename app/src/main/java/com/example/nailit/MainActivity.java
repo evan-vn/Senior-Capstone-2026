@@ -1,7 +1,9 @@
 package com.example.nailit;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +16,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends AppCompatActivity {
     ImageView tryOnBtn, collectionBtn, aiBtn, locationBtn, profileBtn;
+    TextView describeFeature;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,14 +33,48 @@ public class MainActivity extends AppCompatActivity {
         aiBtn = findViewById(R.id.botIcon);
         locationBtn = findViewById(R.id.locationIcon);
         profileBtn = findViewById(R.id.imageProfile);
-
+        describeFeature = findViewById(R.id.describeFeature);
+        describeFeature.setText("Collection Feature");
         loadFragment(new FragmentCollections());
 
-        tryOnBtn.setOnClickListener(view -> loadFragment(new FragmentTryOn()));
-        collectionBtn.setOnClickListener(view -> loadFragment(new FragmentCollections()));
-        locationBtn.setOnClickListener(view -> loadFragment(new FragmentLocations()));
-        aiBtn.setOnClickListener(view -> loadFragment(new FragmentChatBot()));
-        profileBtn.setOnClickListener(view -> loadFragment(new FragmentProfile()));
+        tryOnBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                describeFeature.setText("TryOn Feature");
+                loadFragment(new FragmentTryOn());
+            }
+        });
+        collectionBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                describeFeature.setText("Collection Feature");
+                loadFragment(new FragmentCollections());
+            }
+        });
+
+        locationBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                describeFeature.setText("Salons Location Feature");
+                loadFragment(new FragmentLocations());
+            }
+        });
+        aiBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                describeFeature.setText("Style AI Feature");
+                loadFragment(new FragmentChatBot());
+            }
+        });
+
+        profileBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                describeFeature.setText("Profile Feature");
+                loadFragment(new FragmentProfile());
+            }
+        });
     }
 
     public void loadFragment(Fragment fragment){

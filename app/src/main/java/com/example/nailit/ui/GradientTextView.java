@@ -3,6 +3,7 @@ package com.example.nailit.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
+import android.graphics.Paint;
 import android.graphics.Shader;
 import android.util.AttributeSet;
 
@@ -18,60 +19,34 @@ import com.example.nailit.R;
  */
 public class GradientTextView extends AppCompatTextView {
 
-    private int startColor;
-    private int endColor;
-
-    @Nullable
-    private LinearGradient gradient;
-
     public GradientTextView(Context context) {
         super(context);
-        initColors(context);
     }
 
-    public GradientTextView(Context context, @Nullable AttributeSet attrs) {
+    public GradientTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        initColors(context);
     }
 
-    public GradientTextView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public GradientTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        initColors(context);
-    }
-
-    private void initColors(Context context) {
-        startColor = ContextCompat.getColor(context, R.color.header_brand_gradient_start);
-        endColor = ContextCompat.getColor(context, R.color.header_brand_gradient_end);
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        rebuildGradient(w);
-    }
 
-    private void rebuildGradient(int w) {
-        if (w <= 0) {
-            gradient = null;
-            return;
+        if (w > 0) {
+            Paint paint = getPaint();
+            Shader shader = new LinearGradient(
+                    0, 0, w, 0,
+                    new int[]{
+                            0xFFFF7EB3,   // pink
+                            0xFF8E54E9    // purple
+                    },
+                    null,
+                    Shader.TileMode.CLAMP
+            );
+            paint.setShader(shader);
         }
-        gradient = new LinearGradient(
-                0f,
-                0f,
-                w,
-                0f,
-                startColor,
-                endColor,
-                Shader.TileMode.CLAMP
-        );
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        //TextView may refresh TextPaint before drawing; set shader each frame.
-        if (gradient != null) {
-            getPaint().setShader(gradient);
-        }
-        super.onDraw(canvas);
     }
 }

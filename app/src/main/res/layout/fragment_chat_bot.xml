@@ -17,10 +17,11 @@
         android:background="@color/linght_pink">
 
     <!--Top head of AI Chat bot -->
-        <TextView
+        <com.example.nailit.ui.GradientTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="AI Style Assistant"
+            android:textStyle="bold"
             android:textSize="30sp"
             android:textAlignment="center"/>
 

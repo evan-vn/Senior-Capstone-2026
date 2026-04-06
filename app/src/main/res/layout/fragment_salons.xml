@@ -7,12 +7,13 @@
     android:background="@color/linght_pink"
     android:padding="12dp">
 
-    <TextView
+    <com.example.nailit.ui.GradientTextView
         android:id="@+id/titleText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="TRUSTED NAIL SALON NEAR YOU"
         android:textSize="30sp"
+        android:textStyle="bold"
         android:textAlignment="center"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"

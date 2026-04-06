@@ -15,11 +15,12 @@
         android:padding="8dp">
 
         <!-- HEADER -->
-        <TextView
+        <com.example.nailit.ui.GradientTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Seasonal Collections"
+            android:textStyle="bold"
             android:textAlignment="center"
             android:textSize="32sp" />
 
@@ -372,10 +373,11 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
-                        <TextView
+                        <com.example.nailit.ui.GradientTextView
                             android:id="@+id/seasonNameLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:textStyle="bold"
                             android:text="Trending"
                             android:textSize="16sp" />
 
