@@ -18,11 +18,20 @@ import java.util.List;
 
 public class ChatPolishAdapter extends RecyclerView.Adapter<ChatPolishAdapter.ViewHolder> {
 
+    public interface OnPolishClickListener {
+        void onPolishClick(Polish polish);
+    }
+
     private List<Polish> items = new ArrayList<>();
+    private OnPolishClickListener onPolishClickListener;
 
     public void setItems(List<Polish> polishes) {
         items = polishes != null ? polishes : new ArrayList<>();
         notifyDataSetChanged();
+    }
+
+    public void setOnPolishClickListener(OnPolishClickListener listener) {
+        onPolishClickListener = listener;
     }
 
     @NonNull
@@ -57,6 +66,12 @@ public class ChatPolishAdapter extends RecyclerView.Adapter<ChatPolishAdapter.Vi
                 .error(R.drawable.placeholder_swatch)
                 .centerCrop()
                 .into(holder.image);
+
+        holder.itemView.setOnClickListener(v -> {
+            if (onPolishClickListener != null) {
+                onPolishClickListener.onPolishClick(polish);
+            }
+        });
     }
 
     @Override

@@ -8,4 +8,6 @@ import java.util.Set;
 public class TryOnViewModel extends ViewModel {
     public List<Polish> cachedPolishes = null;
     public Set<String> cachedUids = null;
+    //Last JWT sub when favorites were loaded; detects account switch without process death.
+    public String lastAuthSub = null;
 }

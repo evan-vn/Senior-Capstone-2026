@@ -55,7 +55,10 @@ public class SavedSalonAdapter extends RecyclerView.Adapter<SavedSalonAdapter.Sa
 
         holder.btnHeartSavedSalon.setOnClickListener(v -> {
             if (onHeartClickListener != null) {
-                onHeartClickListener.onHeartClick(salon, holder.getAdapterPosition());
+                int adapterPosition = holder.getBindingAdapterPosition();
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    onHeartClickListener.onHeartClick(salon, adapterPosition);
+                }
             }
         });
     }

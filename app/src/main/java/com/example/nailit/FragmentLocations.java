@@ -1,7 +1,6 @@
 package com.example.nailit;
 
 import android.Manifest;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -49,6 +48,7 @@ import java.util.List;
 import java.util.Set;
 
 import android.widget.Toast;
+import android.util.Log;
 import com.example.nailit.data.model.SavedSalonRequest;
 import com.example.nailit.data.model.SavedSalonResponse;
 
@@ -131,7 +131,20 @@ public class FragmentLocations extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshCurrentUserId();
+        loadSavedSalons();
+    }
+
+    private String refreshCurrentUserId() {
+        currentUserId = tokenStore != null ? tokenStore.getUserId() : null;
+        return currentUserId;
+    }
+
     private void loadSavedSalons() {
+        refreshCurrentUserId();
         if (currentUserId == null || currentUserId.trim().isEmpty()) return;
 
         savedSalonApi.getSavedSalons("eq." + currentUserId, "created_at.desc")
@@ -305,7 +318,7 @@ public class FragmentLocations extends Fragment {
                     updateCount();
                 })
                 .addOnFailureListener(e -> {
-                    e.printStackTrace();
+                    Log.e("FragmentLocations", "Failed to fetch place details", e);
                 });
     }
 
@@ -546,13 +559,12 @@ public class FragmentLocations extends Fragment {
     }
     private void saveSalon(SalonItem item, ImageButton btnHeart) {
         if (!isAdded()) return;
+        refreshCurrentUserId();
 
         if (currentUserId == null || currentUserId.trim().isEmpty()) {
             Toast.makeText(requireContext(), "User not found. Please log in again.", Toast.LENGTH_LONG).show();
             return;
         }
-
-        saveUserIdForProfile(currentUserId);
 
         SavedSalonRequest request = new SavedSalonRequest(
                 currentUserId,
@@ -563,7 +575,7 @@ public class FragmentLocations extends Fragment {
         );
 
         Call<List<SavedSalonResponse>> call = savedSalonApi.saveSalon(request);
-        android.util.Log.d("SAVE_SALON", "Request URL: " + call.request().url());
+        Log.d("SAVE_SALON", "Request URL: " + call.request().url());
 
         call.enqueue(new Callback<List<SavedSalonResponse>>() {
             @Override
@@ -586,8 +598,8 @@ public class FragmentLocations extends Fragment {
                     }
                 } catch (Exception ignored) {}
 
-                android.util.Log.e("SAVE_SALON", "HTTP " + response.code());
-                android.util.Log.e("SAVE_SALON", "Error body: " + errorMessage);
+                Log.e("SAVE_SALON", "HTTP " + response.code());
+                Log.e("SAVE_SALON", "Error body: " + errorMessage);
 
                 if (errorMessage.contains("JWT token has expired")) {
                     Toast.makeText(requireContext(), "Session expired. Please log in again.", Toast.LENGTH_LONG).show();
@@ -601,12 +613,13 @@ public class FragmentLocations extends Fragment {
             @Override
             public void onFailure(Call<List<SavedSalonResponse>> call, Throwable t) {
                 if (!isAdded()) return;
-                android.util.Log.e("SAVE_SALON", "Failure", t);
+                Log.e("SAVE_SALON", "Failure", t);
                 Toast.makeText(requireContext(), "Error saving salon: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
     private void removeSavedSalon(SalonItem item, ImageButton btnHeart) {
+        refreshCurrentUserId();
         if (currentUserId == null || currentUserId.trim().isEmpty()) {
             Toast.makeText(requireContext(), "Please log in again", Toast.LENGTH_LONG).show();
             return;
@@ -635,16 +648,4 @@ public class FragmentLocations extends Fragment {
                     }
                 });
     }
-
-    private void saveUserIdForProfile(String userId) {
-        if (!isAdded() || userId == null || userId.trim().isEmpty()) return;
-
-        requireContext()
-                .getSharedPreferences("NailItPrefs", android.content.Context.MODE_PRIVATE)
-                .edit()
-                .putString("user_id", userId)
-                .apply();
-    }
-
-
 }

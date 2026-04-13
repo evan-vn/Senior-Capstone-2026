@@ -1,7 +1,6 @@
 package com.example.nailit;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -100,6 +99,7 @@ public class FragmentProfile extends Fragment {
     }
 
     private void handleLogout() {
+        FragmentChatBot.clearChatHistory();
         authRepository.logout();
         Intent intent = new Intent(requireContext(), LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -113,18 +113,6 @@ public class FragmentProfile extends Fragment {
         if (tokenUserId != null && !tokenUserId.isEmpty()) {
             return tokenUserId;
         }
-
-        SharedPreferences prefs = requireContext()
-                .getSharedPreferences("NailItPrefs", android.content.Context.MODE_PRIVATE);
-
-        String userId = prefs.getString("user_id", null);
-        String appUserId = prefs.getString("app_user_id", null);
-        String authUserId = prefs.getString("auth_user_id", null);
-
-        if (userId != null && !userId.isEmpty()) return userId;
-        if (appUserId != null && !appUserId.isEmpty()) return appUserId;
-        if (authUserId != null && !authUserId.isEmpty()) return authUserId;
-
         return null;
     }
 }

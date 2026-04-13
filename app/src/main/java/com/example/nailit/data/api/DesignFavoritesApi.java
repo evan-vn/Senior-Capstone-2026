@@ -15,12 +15,15 @@ public interface DesignFavoritesApi {
 
     @GET("user_favorite_designs")
     Call<List<com.example.nailit.data.model.DesignFavoriteRow>> getMyFavorites(
-            @Query("select") String select);
+            @Query("select") String select,
+            @Query("user_id") String userIdEq);
 
     @POST("user_favorite_designs")
     Call<ResponseBody> addFavorite(@Body Map<String, Object> body);
 
     @DELETE("user_favorite_designs")
-    Call<ResponseBody> removeFavorite(@Query("design_id") String designIdFilter);
+    Call<ResponseBody> removeFavorite(
+            @Query("user_id") String userIdEq,
+            @Query("design_id") String designIdFilter);
 }
 

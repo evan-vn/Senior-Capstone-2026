@@ -49,8 +49,17 @@ public class FavoritePolishesActivity extends AppCompatActivity {
 
         recycler.setLayoutManager(new GridLayoutManager(this, 2));
         adapter = new PolishGridAdapter(favoritesRepo);
+        adapter.setOnFavoriteRemovedFromListListener(remaining -> {
+            if (remaining <= 0) {
+                showEmpty();
+            }
+        });
         recycler.setAdapter(adapter);
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadFavorites();
     }
 
@@ -59,7 +68,10 @@ public class FavoritePolishesActivity extends AppCompatActivity {
         favoritesRepo.getMyFavoritePolishes(new FavoritesRepository.FavoritesListCallback() {
             @Override
             public void onSuccess(Set<String> polishUids) {
-                Log.d(TAG, "Favorite polish UIDs: " + polishUids.size());
+                TokenStore ts = new TokenStore(FavoritePolishesActivity.this);
+                Log.d(TAG, "Favorite polish UIDs: " + polishUids.size()
+                        + " jwt_sub=" + ts.getSubFromJwt()
+                        + " app_user_id=" + ts.getUserId());
                 if (polishUids.isEmpty()) {
                     runOnUiThread(() -> showEmpty());
                     return;

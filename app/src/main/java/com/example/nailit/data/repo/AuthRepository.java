@@ -9,6 +9,7 @@ import com.example.nailit.data.auth.AuthProvider;
 import com.example.nailit.data.auth.PasswordGrantAuthProvider;
 import com.example.nailit.data.auth.SessionResponse;
 import com.example.nailit.data.config.NeonConfig;
+import com.example.nailit.data.network.ApiClient;
 import com.example.nailit.data.network.PlainClient;
 import com.example.nailit.data.network.TokenStore;
 
@@ -55,7 +56,10 @@ public class AuthRepository {
     }
 
     public void logout() {
+        Log.d(TAG, "logout: clearing session, JWT, and cached app user_id");
         tokenStore.clear();
+        ApiClient.reset();
+        PlainClient.reset();
     }
 
     public interface ProfileCallback {

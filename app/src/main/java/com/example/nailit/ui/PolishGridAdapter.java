@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -31,11 +32,21 @@ public class PolishGridAdapter
         void onPolishClick(Polish polish);
     }
 
+    //When set, successful un-favorite removes that row (Saved Nail Colors screen).
+    public interface OnFavoriteRemovedFromListListener {
+        void onFavoriteRemoved(int remainingItemCount);
+    }
+
     @Nullable
     private OnPolishClickListener listener;
 
+    @Nullable
+    private OnFavoriteRemovedFromListListener favoriteRemovedFromListListener;
+
     private List<Polish> items = new ArrayList<>();
     private final Set<String> favoriteUids = new HashSet<>();
+    @Nullable
+    private String selectedUid;
     @Nullable
     private final FavoritesRepository favoritesRepo;
 
@@ -51,6 +62,11 @@ public class PolishGridAdapter
 
     public void setOnPolishClickListener(OnPolishClickListener listener) {
         this.listener = listener;
+    }
+
+    public void setOnFavoriteRemovedFromListListener(
+            @Nullable OnFavoriteRemovedFromListListener listener) {
+        this.favoriteRemovedFromListListener = listener;
     }
 
     public PolishGridAdapter(@Nullable FavoritesRepository favoritesRepo,
@@ -69,6 +85,11 @@ public class PolishGridAdapter
         if (uids != null) {
             favoriteUids.addAll(uids);
         }
+        notifyDataSetChanged();
+    }
+
+    public void setSelectedUid(@Nullable String uid) {
+        selectedUid = uid;
         notifyDataSetChanged();
     }
 
@@ -119,9 +140,14 @@ public class PolishGridAdapter
 
         boolean isFavorite = favoriteUids.contains(uid);
         h.heartIcon.setImageResource(isFavorite ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline);
+        boolean isSelected = selectedUid != null && selectedUid.equals(uid);
+        h.cardRoot.setCardElevation(isSelected ? 6f : 2f);
+        h.cardRoot.setCardBackgroundColor(isSelected ? 0xFFFFF2FA : 0xFFFFFFFF);
 
         h.itemView.setOnClickListener(v -> {
             Log.d("ADAPTER_CLICK", "Clicked position: " + position);
+            selectedUid = uid;
+            notifyDataSetChanged();
             if (listener != null) {
                 listener.onPolishClick(p);
             }
@@ -133,10 +159,7 @@ public class PolishGridAdapter
                     favoritesRepo.removeFavorite(uid, new FavoritesRepository.FavoriteCallback() {
                         @Override
                         public void onSuccess() {
-                            v.post(() -> {
-                                favoriteUids.remove(uid);
-                                notifyItemChanged(position);
-                            });
+                            v.post(() -> applyUnfavoriteUi(h, uid, position));
                         }
 
                         @Override
@@ -149,8 +172,11 @@ public class PolishGridAdapter
                         @Override
                         public void onSuccess() {
                             v.post(() -> {
+                                int pos = h.getBindingAdapterPosition();
                                 favoriteUids.add(uid);
-                                notifyItemChanged(position);
+                                if (pos != RecyclerView.NO_POSITION) {
+                                    notifyItemChanged(pos);
+                                }
                             });
                         }
 
@@ -169,6 +195,43 @@ public class PolishGridAdapter
                 notifyItemChanged(position);
             }
         });
+    }
+
+    private void applyUnfavoriteUi(@NonNull ViewHolder h, String uid, int layoutPosition) {
+        favoriteUids.remove(uid);
+        if (favoriteRemovedFromListListener != null) {
+            int pos = h.getBindingAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION
+                    || pos < 0
+                    || pos >= items.size()
+                    || items.get(pos).getUid() == null
+                    || !uid.equals(items.get(pos).getUid())) {
+                pos = indexOfUid(uid);
+            }
+            if (pos >= 0) {
+                items.remove(pos);
+                notifyItemRemoved(pos);
+            }
+            favoriteRemovedFromListListener.onFavoriteRemoved(items.size());
+        } else {
+            int pos = h.getBindingAdapterPosition();
+            if (pos != RecyclerView.NO_POSITION) {
+                notifyItemChanged(pos);
+            } else if (layoutPosition >= 0 && layoutPosition < items.size()) {
+                notifyItemChanged(layoutPosition);
+            }
+        }
+    }
+
+    private int indexOfUid(String uid) {
+        if (uid == null) return -1;
+        for (int i = 0; i < items.size(); i++) {
+            Polish p = items.get(i);
+            if (p != null && uid.equals(p.getUid())) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private Integer tryParseHex(String hex) {
@@ -191,12 +254,14 @@ public class PolishGridAdapter
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        final CardView cardRoot;
         final ImageView swatchImage;
         final ImageView heartIcon;
         final TextView tvName;
 
         ViewHolder(View itemView) {
             super(itemView);
+            cardRoot = (CardView) itemView;
             swatchImage = itemView.findViewById(R.id.swatch_image);
             heartIcon = itemView.findViewById(R.id.heart_icon);
             tvName = itemView.findViewById(R.id.tv_polish_name);

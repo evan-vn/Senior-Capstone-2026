@@ -209,6 +209,14 @@ public class FragmentCollections extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (favoritesRepo != null) {
+            loadFavoritesIntoAdapters();
+        }
+    }
+
     private boolean isSearchActive() {
         String query = brandSearchInput.getText() != null ? brandSearchInput.getText().toString().trim() : "";
         return !query.isEmpty()

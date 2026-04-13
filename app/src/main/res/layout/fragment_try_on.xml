@@ -96,20 +96,19 @@
                     android:layout_gravity="center_horizontal"
                     android:visibility="gone"
                     android:padding="16dp" />
-                <!--Test srollable part - Delete it -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Colors Here"
+                    android:text="No favorite colors yet."
                     android:textSize="10sp"
                     android:id="@+id/empTxtTryOn"/>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/colorsRecyclerTryOn"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
                     android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
                     android:paddingBottom="8dp" />
 
             </LinearLayout>

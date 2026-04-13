@@ -1,6 +1,7 @@
 package com.example.nailit;
 
 import android.os.Bundle;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,10 +25,16 @@ import com.example.nailit.data.repo.FavoritesRepository;
 import com.example.nailit.data.repo.PolishesRepository;
 import com.example.nailit.ui.PolishGridAdapter;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class FragmentTryOn extends Fragment {
+
+    public static final String ARG_SELECTED_POLISH_UID = "selected_polish_uid";
+    public static final String ARG_SELECTED_COLOR_HEX = "selected_color_hex";
+    public static final String ARG_SELECTED_SHADE_NAME = "selected_shade_name";
+    public static final String ARG_SELECTED_IMAGE_URL = "selected_image_url";
 
     private Button tryOnBtn;
     private TextView empTxtTryOn;
@@ -40,6 +47,10 @@ public class FragmentTryOn extends Fragment {
     private TryOnViewModel viewModel;
 
     Polish selectedPolish;
+    private String incomingPolishUid;
+    private String incomingHex;
+    private String incomingShadeName;
+    private String incomingImageUrl;
 
     @Nullable
     @Override
@@ -60,6 +71,7 @@ public class FragmentTryOn extends Fragment {
 
         // Scope ViewModel to Activity so FragmentCamera can share it
         viewModel = new ViewModelProvider(requireActivity()).get(TryOnViewModel.class);
+        readIncomingSelectionArgs();
 
         colorsRecyclerTryOn.setLayoutManager(new GridLayoutManager(getContext(), 2));
         adapter = new PolishGridAdapter(favoritesRepo);
@@ -89,6 +101,11 @@ public class FragmentTryOn extends Fragment {
                 bundle.putString("image_url", selectedPolish.getSwatchUrl());
                 bundle.putString("shade_name", selectedPolish.getShadeName());
                 Log.d("SEND_DEBUG", "url = " + selectedPolish.getSwatchUrl());
+            } else if (incomingHex != null && isValidHex(incomingHex)) {
+                bundle.putString("hex", incomingHex);
+                bundle.putString("image_url", incomingImageUrl);
+                bundle.putString("shade_name", incomingShadeName);
+                Log.d("FragmentTryOn", "Using incoming preselected color directly in camera: " + incomingHex);
             }
 
             cameraFragment.setArguments(bundle);
@@ -103,11 +120,28 @@ public class FragmentTryOn extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!isAdded()) return;
+        TokenStore ts = new TokenStore(requireContext());
+        String sub = ts.getSubFromJwt();
+        if (viewModel.lastAuthSub != null && sub != null && !sub.equals(viewModel.lastAuthSub)) {
+            Log.d("FragmentTryOn", "JWT subject changed; clearing try-on favorites cache");
+            viewModel.cachedPolishes = null;
+            viewModel.cachedUids = null;
+            viewModel.lastAuthSub = null;
+            adapter.setFavoriteUids(new HashSet<>());
+            loadFavorites();
+        }
+    }
+
     // ─── Data loading ────────────────────────────────────────────────────────────
 
     private void loadFavorites() {
         if (viewModel.cachedPolishes != null) {
             showResults(viewModel.cachedPolishes);
+            applyIncomingSelection(viewModel.cachedPolishes);
             return;
         }
 
@@ -115,6 +149,7 @@ public class FragmentTryOn extends Fragment {
         favoritesRepo.getMyFavoritePolishes(new FavoritesRepository.FavoritesListCallback() {
             @Override
             public void onSuccess(Set<String> polishUids) {
+                viewModel.lastAuthSub = new TokenStore(requireContext()).getSubFromJwt();
                 if (polishUids.isEmpty()) {
                     requireActivity().runOnUiThread(() -> showEmpty());
                     return;
@@ -136,7 +171,10 @@ public class FragmentTryOn extends Fragment {
             @Override
             public void onSuccess(List<Polish> polishes) {
                 viewModel.cachedPolishes = polishes;
-                requireActivity().runOnUiThread(() -> showResults(polishes));
+                requireActivity().runOnUiThread(() -> {
+                    showResults(polishes);
+                    applyIncomingSelection(polishes);
+                });
             }
 
             @Override
@@ -144,6 +182,80 @@ public class FragmentTryOn extends Fragment {
                 requireActivity().runOnUiThread(() -> showEmpty());
             }
         });
+    }
+
+    private void readIncomingSelectionArgs() {
+        Bundle args = getArguments();
+        if (args == null) {
+            Log.d("FragmentTryOn", "No incoming selection args; normal Try-On flow");
+            return;
+        }
+        incomingPolishUid = args.getString(ARG_SELECTED_POLISH_UID);
+        incomingHex = args.getString(ARG_SELECTED_COLOR_HEX);
+        incomingShadeName = args.getString(ARG_SELECTED_SHADE_NAME);
+        incomingImageUrl = args.getString(ARG_SELECTED_IMAGE_URL);
+
+        if (incomingHex == null || incomingHex.trim().isEmpty()) {
+            Log.d("FragmentTryOn", "No selected_color_hex passed; fallback to manual selection");
+        } else if (!isValidHex(incomingHex)) {
+            Log.w("FragmentTryOn", "Invalid selected_color_hex=" + incomingHex + " fallback enabled");
+            incomingHex = null;
+        } else {
+            Log.d("FragmentTryOn", "Received preselected color hex=" + incomingHex
+                    + " uid=" + incomingPolishUid
+                    + " shade=" + incomingShadeName);
+        }
+    }
+
+    private void applyIncomingSelection(List<Polish> polishes) {
+        if ((incomingPolishUid == null || incomingPolishUid.isEmpty())
+                && (incomingHex == null || incomingHex.isEmpty())) {
+            return;
+        }
+        if (polishes == null || polishes.isEmpty()) return;
+
+        Polish match = null;
+        if (incomingPolishUid != null && !incomingPolishUid.isEmpty()) {
+            for (Polish p : polishes) {
+                if (p != null && incomingPolishUid.equals(p.getUid())) {
+                    match = p;
+                    break;
+                }
+            }
+        }
+        if (match == null && incomingHex != null && !incomingHex.isEmpty()) {
+            for (Polish p : polishes) {
+                if (p != null && p.getHex() != null && incomingHex.equalsIgnoreCase(p.getHex())) {
+                    match = p;
+                    break;
+                }
+            }
+        }
+        if (match == null) {
+            Log.d("FragmentTryOn", "Incoming polish not found in favorites list; keeping manual flow");
+            return;
+        }
+
+        selectedPolish = match;
+        adapter.setSelectedUid(match.getUid());
+        Log.d("FragmentTryOn", "Preselected polish applied: uid=" + match.getUid()
+                + " shade=" + match.getShadeName()
+                + " hex=" + match.getHex());
+        Toast.makeText(getContext(), "Selected: " + match.getShadeName(), Toast.LENGTH_SHORT).show();
+
+        incomingPolishUid = null;
+        incomingHex = null;
+        incomingShadeName = null;
+        incomingImageUrl = null;
+    }
+
+    private boolean isValidHex(String hex) {
+        try {
+            Color.parseColor(hex);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // ─── UI states ───────────────────────────────────────────────────────────────

@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -51,19 +52,23 @@ public class FavoritesRepository {
 
     public void addFavorite(String polishUid, FavoriteCallback callback) {
         String userId = tokenStore.getUserId();
-        if (userId != null) {
-            Log.d(TAG, "Using cached user_id=" + userId);
+        String sub = tokenStore.getSubFromJwt();
+        if (userId != null && !userId.isEmpty()) {
+            Log.d(TAG, "addFavorite using cached app_user_id=" + userId + " jwt_sub=" + sub);
             doAddFavorite(userId, polishUid, callback);
             return;
         }
         resolveCurrentUser(resolvedId -> doAddFavorite(resolvedId, polishUid, callback), callback);
     }
 
-    private void resolveCurrentUser(java.util.function.Consumer<String> onResolved,
-                                    FavoriteCallback errorCallback) {
+    private void resolveCurrentUser(Consumer<String> onResolved, FavoriteCallback errorCallback) {
+        resolveCurrentUserId(onResolved, errorCallback::onError);
+    }
+
+    private void resolveCurrentUserId(Consumer<String> onResolved, Consumer<String> onError) {
         String sub = tokenStore.getSubFromJwt();
         if (sub == null || sub.isEmpty()) {
-            errorCallback.onError("No auth session. Please log in again.");
+            onError.accept("No auth session. Please log in again.");
             return;
         }
         String authFilter = "eq." + sub;
@@ -75,14 +80,14 @@ public class FavoritesRepository {
                                    @NonNull Response<List<UserIdRow>> response) {
                 if (!response.isSuccessful() || response.body() == null || response.body().isEmpty()) {
                     Log.e(TAG, "User lookup failed: HTTP " + (response != null ? response.code() : "null"));
-                    errorCallback.onError("User not found. Please log in again.");
+                    onError.accept("User not found. Please log in again.");
                     return;
                 }
                 String resolvedId = response.body().get(0).getId();
                 Log.d(TAG, "Resolved public.users.id=" + resolvedId
-                        + " (from " + response.body().size() + " rows)");
+                        + " rows=" + response.body().size() + " jwt_sub=" + sub);
                 if (resolvedId == null || resolvedId.isEmpty()) {
-                    errorCallback.onError("User not found. Please log in again.");
+                    onError.accept("User not found. Please log in again.");
                     return;
                 }
                 tokenStore.setUserId(resolvedId);
@@ -91,41 +96,59 @@ public class FavoritesRepository {
 
             @Override
             public void onFailure(@NonNull Call<List<UserIdRow>> call, @NonNull Throwable t) {
-                errorCallback.onError("Could not load user: " + t.getMessage());
+                onError.accept("Could not load user: " + t.getMessage());
             }
         });
     }
 
     public void getMyFavoritePolishes(FavoritesListCallback callback) {
-        favoritesApi.getMyFavorites("polish_uid").enqueue(new Callback<List<FavoriteRow>>() {
-            @Override
-            public void onResponse(@NonNull Call<List<FavoriteRow>> call,
-                                   @NonNull Response<List<FavoriteRow>> response) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError(RetrofitUtil.extractError("Favorites", response));
-                    return;
-                }
-                Set<String> uids = new HashSet<>();
-                for (FavoriteRow row : response.body()) {
-                    if (row.getPolishUid() != null) {
-                        uids.add(row.getPolishUid());
-                    }
-                }
-                callback.onSuccess(uids);
-            }
+        String sub = tokenStore.getSubFromJwt();
+        Log.d(TAG, "getMyFavoritePolishes jwt_sub=" + sub);
 
-            @Override
-            public void onFailure(@NonNull Call<List<FavoriteRow>> call, @NonNull Throwable t) {
-                callback.onError("Could not load favorites: " + t.getMessage());
-            }
-        });
+        Consumer<String> fetch = userId -> {
+            String userEq = "eq." + userId;
+            Log.d(TAG, "GET user_favorite_polishes user_id=" + userEq + " select=polish_uid");
+            favoritesApi.getMyFavorites("polish_uid", userEq).enqueue(new Callback<List<FavoriteRow>>() {
+                @Override
+                public void onResponse(@NonNull Call<List<FavoriteRow>> call,
+                                       @NonNull Response<List<FavoriteRow>> response) {
+                    if (!response.isSuccessful() || response.body() == null) {
+                        callback.onError(RetrofitUtil.extractError("Favorites", response));
+                        return;
+                    }
+                    List<FavoriteRow> body = response.body();
+                    Log.d(TAG, "Favorites fetch returned count=" + body.size()
+                            + " app_user_id=" + userId);
+                    Set<String> uids = new HashSet<>();
+                    for (FavoriteRow row : body) {
+                        if (row != null && row.getPolishUid() != null) {
+                            uids.add(row.getPolishUid());
+                        }
+                    }
+                    callback.onSuccess(uids);
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<List<FavoriteRow>> call, @NonNull Throwable t) {
+                    callback.onError("Could not load favorites: " + t.getMessage());
+                }
+            });
+        };
+
+        String cached = tokenStore.getUserId();
+        if (cached != null && !cached.isEmpty()) {
+            Log.d(TAG, "getMyFavoritePolishes using cached app_user_id=" + cached);
+            fetch.accept(cached);
+        } else {
+            resolveCurrentUserId(fetch, callback::onError);
+        }
     }
 
     private void doAddFavorite(String userId, String polishUid, FavoriteCallback callback) {
         Map<String, String> body = new HashMap<>();
         body.put("user_id", userId);
         body.put("polish_uid", polishUid);
-        Log.d(TAG, "POST user_favorite_polishes payload: " + body);
+        Log.d(TAG, "POST user_favorite_polishes body=" + body + " jwt_sub=" + tokenStore.getSubFromJwt());
         favoritesApi.addFavorite(body).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call,
@@ -146,23 +169,34 @@ public class FavoritesRepository {
     }
 
     public void removeFavorite(String polishUid, FavoriteCallback callback) {
-        //PostgREST filter: polish_uid=eq.xxx
-        String filterValue = "eq." + polishUid;
-        favoritesApi.removeFavorite(filterValue).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(@NonNull Call<ResponseBody> call,
-                                   @NonNull Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    callback.onSuccess();
-                } else {
-                    callback.onError(RetrofitUtil.extractError("Remove favorite", response));
+        Consumer<String> go = userId -> {
+            String userEq = "eq." + userId;
+            String polishEq = "eq." + polishUid;
+            Log.d(TAG, "DELETE user_favorite_polishes user_id=" + userEq + " polish_uid=" + polishEq
+                    + " jwt_sub=" + tokenStore.getSubFromJwt());
+            favoritesApi.removeFavorite(userEq, polishEq).enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(@NonNull Call<ResponseBody> call,
+                                       @NonNull Response<ResponseBody> response) {
+                    if (response.isSuccessful()) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onError(RetrofitUtil.extractError("Remove favorite", response));
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                callback.onError("Remove favorite failed: " + t.getMessage());
-            }
-        });
+                @Override
+                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                    callback.onError("Remove favorite failed: " + t.getMessage());
+                }
+            });
+        };
+
+        String cached = tokenStore.getUserId();
+        if (cached != null && !cached.isEmpty()) {
+            go.accept(cached);
+        } else {
+            resolveCurrentUserId(go, callback::onError);
+        }
     }
 }

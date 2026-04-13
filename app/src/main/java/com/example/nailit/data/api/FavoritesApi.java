@@ -16,11 +16,15 @@ import retrofit2.http.Query;
 public interface FavoritesApi {
 
     @GET("user_favorite_polishes")
-    Call<List<FavoriteRow>> getMyFavorites(@Query("select") String select);
+    Call<List<FavoriteRow>> getMyFavorites(
+            @Query("select") String select,
+            @Query("user_id") String userIdEq);
 
     @POST("user_favorite_polishes")
     Call<ResponseBody> addFavorite(@Body Map<String, String> body);
 
     @DELETE("user_favorite_polishes")
-    Call<ResponseBody> removeFavorite(@Query("polish_uid") String polishUidEq);
+    Call<ResponseBody> removeFavorite(
+            @Query("user_id") String userIdEq,
+            @Query("polish_uid") String polishUidEq);
 }

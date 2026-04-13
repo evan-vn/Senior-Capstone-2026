@@ -6,6 +6,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -50,6 +51,10 @@ public class FragmentChatBot extends Fragment {
     private OutfitColorExtractor.ColorSummary selectedColorSummary;
     private ActivityResultLauncher<PickVisualMediaRequest> pickImageLauncher;
      private static final List<ChatUiItem> chatHistory = new ArrayList<>();
+
+    public static void clearChatHistory() {
+        chatHistory.clear();
+    }
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -291,6 +296,7 @@ public class FragmentChatBot extends Fragment {
 
         ChatPolishAdapter adapter = new ChatPolishAdapter();
         adapter.setItems(polishes);
+        adapter.setOnPolishClickListener(this::openTryOnWithPolish);
         recycler.setAdapter(adapter);
         recycler.setNestedScrollingEnabled(false);
 
@@ -302,6 +308,30 @@ public class FragmentChatBot extends Fragment {
         recycler.setLayoutParams(params);
 
         chatContainer.addView(recycler);
+    }
+
+    private void openTryOnWithPolish(Polish polish) {
+        if (polish == null || !isAdded()) return;
+        String hex = polish.getHex();
+        Log.d("StyleAI", "Polish tapped: uid=" + polish.getUid()
+                + " shade=" + polish.getShadeName()
+                + " hex=" + hex);
+
+        FragmentTryOn tryOn = new FragmentTryOn();
+        Bundle args = new Bundle();
+        if (polish.getUid() != null) args.putString(FragmentTryOn.ARG_SELECTED_POLISH_UID, polish.getUid());
+        if (polish.getShadeName() != null) args.putString(FragmentTryOn.ARG_SELECTED_SHADE_NAME, polish.getShadeName());
+        if (polish.getSwatchUrl() != null) args.putString(FragmentTryOn.ARG_SELECTED_IMAGE_URL, polish.getSwatchUrl());
+        if (hex != null && !hex.trim().isEmpty()) {
+            args.putString(FragmentTryOn.ARG_SELECTED_COLOR_HEX, hex.trim());
+        }
+        tryOn.setArguments(args);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.middleLayout, tryOn)
+                .addToBackStack(null)
+                .commit();
     }
 
     private void addOptionHeading(String label) {

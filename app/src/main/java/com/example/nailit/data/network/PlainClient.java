@@ -1,5 +1,7 @@
 package com.example.nailit.data.network;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
@@ -24,9 +26,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 //Includes CookieJar so Better Auth session cookies persist across requests.
 public final class PlainClient {
 
+    private static final String TAG = "PlainClient";
     private static volatile Retrofit instance;
 
-    private static final CookieJar COOKIE_JAR = new CookieJar() {
+    private static final InMemoryCookieJar COOKIE_JAR = new InMemoryCookieJar();
+
+    private static final class InMemoryCookieJar implements CookieJar {
         private final Map<String, List<Cookie>> store = new HashMap<>();
 
         @Override
@@ -40,7 +45,11 @@ public final class PlainClient {
             List<Cookie> cookies = store.get(url.host());
             return cookies != null ? cookies : Collections.emptyList();
         }
-    };
+
+        void clearAll() {
+            store.clear();
+        }
+    }
 
     private PlainClient() {}
 
@@ -107,5 +116,14 @@ public final class PlainClient {
         }
 
         return httpBuilder.build();
+    }
+
+    public static void reset() {
+        instance = null;
+        try {
+            COOKIE_JAR.clearAll();
+        } catch (Exception ignored) {
+            Log.w(TAG, "Could not clear in-memory auth cookies");
+        }
     }
 }

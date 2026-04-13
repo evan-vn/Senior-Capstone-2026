@@ -86,7 +86,11 @@ public class FavoriteDesignsActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadFavorites();
     }
 
@@ -95,7 +99,10 @@ public class FavoriteDesignsActivity extends AppCompatActivity {
         favoritesRepo.getMyFavoriteDesigns(new DesignFavoritesRepository.FavoritesListCallback() {
             @Override
             public void onSuccess(Set<Long> designIds) {
-                Log.d(TAG, "Favorite design IDs: " + designIds.size());
+                TokenStore ts = new TokenStore(FavoriteDesignsActivity.this);
+                Log.d(TAG, "Favorite design IDs: " + designIds.size()
+                        + " jwt_sub=" + ts.getSubFromJwt()
+                        + " app_user_id=" + ts.getUserId());
                 if (designIds.isEmpty()) {
                     runOnUiThread(() -> showEmpty());
                     return;
